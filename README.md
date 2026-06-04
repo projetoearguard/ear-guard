@@ -1,0 +1,2 @@
+# Ear Guard 
+Este ‚ um projeto desenvolvido pelo time Ear Guard, apresentado ao Centro Paula Souza pela ETEC para conclusÆo do curso t‚cnico em Desenvolvimento de Sistemas. 

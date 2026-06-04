@@ -1,0 +1,10 @@
+{
+  "appId": "com.aeggpw.earguard",
+  "appName": "Ear Guard",
+  "webDir": "dist",
+  "plugins": {
+    "CapacitorAudioRecorder": {
+      "permissions": ["microphone"]
+    }
+  }
+}
