@@ -1,44 +1,128 @@
 "use strict";
 
-/*import {
-  CapacitorAudioRecorder,
-  RecordingStatus,
-} from '@capgo/capacitor-audio-recorder';
- 
-
-*/
-
-const EarGuard = Capacitor.Plugins.EarGuard;
-
 /* ----------------------------------------------------------------
-   Sons integrados disponiveis
+   Sons integrados
    ---------------------------------------------------------------- */
 const DEFAULT_AUDIOS_CATALOG = [
-  { id: 'default_ruido_branco', name: 'Ruido Branco', file: 'branco.mp3', dbMin: 0, dbMax: 10 },
-  { id: 'default_ruido_rosa', name: 'Ruido Rosa', file: 'rosa.mp3', dbMin: 11, dbMax: 20 },
-  { id: 'default_chuva', name: 'Chuva', file: 'chuva.mp3', dbMin: 21, dbMax: 30 },
-  { id: 'default_floresta', name: 'Floresta', file: 'floresta.wav', dbMin: 31, dbMax: 40 },
-  { id: 'default_432hz', name: '432 Hz', file: '432hz.wav', dbMin: 41, dbMax: 50 },
-  { id: 'default_528hz', name: '528 Hz', file: '528hz.wav', dbMin: 51, dbMax: 60 },
-  { id: 'default_40hz', name: '40 Hz Gamma', file: '40hz.wav', dbMin: 61, dbMax: 70 },
+  { id: 'white',  name: 'Ruido Branco', icon: 'noise',     desc: "Tom neutro suave",          file: 'white.mp3',  dbMin: 0, dbMax: 5,   referenceDb: 20 },
+  { id: 'pink',   name: 'Ruido Rosa',   icon: 'softNoise', desc: "Espectro natural calmante", file: 'pink.mp3',   dbMin: 6, dbMax: 10,  referenceDb: 20 },
+  { id: 'rain',   name: 'Chuva',        icon: 'rain',      desc: "Gotas ritmadas",            file: 'rain.mp3',   dbMin: 11, dbMax: 15, referenceDb: 20 },
+  { id: 'forest', name: 'Floresta',     icon: 'forest',    desc: "Sons da natureza",          file: 'forest.mp3', dbMin: 16, dbMax: 20, referenceDb: 20 },
+  { id: '432hz',  name: '432 Hz',       icon: 'tone',      desc: "Tom de relaxamento",        file: '432hz.mp3',  dbMin: 21, dbMax: 25, referenceDb: 20 },
+  { id: '528hz',  name: '528 Hz',       icon: 'spark',     desc: "Tom de regeneração",        file: '528hz.mp3',  dbMin: 26, dbMax: 30, referenceDb: 20 },
+  { id: '40hz',   name: '40 Hz Gamma',  icon: 'brain',     desc: "Estimulação cognitiva",     file: '40hz.mp3',   dbMin: 31, dbMax: 35, referenceDb: 20 },
+  { id: 'ocean',  name: 'Ondas do Mar', icon: 'ocean',     desc: "Ondas ritmadas",            file: 'ocean.mp3',  dbMin: 36, dbMax: 40, referenceDb: 20 },
+  { id: 'piano',  name: 'Piano Calmo',  icon: 'piano',     desc: "Piano calmo",               file: 'piano.mp3',  dbMin: 41, dbMax: 45, referenceDb: 20 },
 ];
+
+const DEFAULT_TRIGGERING_CATALOG = [
+  { id: 'babycry',    name: 'Bebê chorando',         desc: 'Um bebê chorando',                                    file: 'babycrying.mp3',    db: 50},
+  { id: 'drill',      name: 'Furadeira',             desc: 'Som de uma furadeira em funcionamento',               file: 'drill.mp3',         db: 50},
+  { id: 'fireworks',  name: 'Fogos de artifício',    desc: 'Explosões de fogos de artifício durante comemoração', file: 'fireworks.mp3',     db: 50},
+  { id: 'hairdryer',  name: 'Secador de cabelo',     desc: 'Som de secador de cabelo em funcionamento',           file: 'hairdryer.mp3',     db: 50},
+  { id: 'alarm',      name: 'Alarme',                desc: 'Alarme de desastre natural',                          file: 'mgalarm.mp3',       db: 50},
+  { id: 'talking',    name: 'Pessoas falando',       desc: 'Sons de pessoas falando',                             file: 'peopletalking.mp3', db: 50},
+  { id: 'restaurant', name: 'Restaurante',           desc: 'Sons de pessoas falando e comendo em um restaurante', file: 'restaurant.mp3',    db: 50},
+  { id: 'subway',     name: 'Metrô',                 desc: 'Sons de uma estação de metrô',                        file: 'spsubway.mp3',      db: 50},
+  { id: 'static',     name: 'Estática de televisão', desc: 'Som de estática de televisão',                        file: 'static.mp3',        db: 50},
+  { id: 'traffic',    name: 'Tráfego',               desc: 'Som de carros em uma rua',                            file: 'traffic.mp3',       db: 50},
+  { id: 'streets',    name: 'Ruas urbanas',          desc: 'Som atravessando uma rua urbana',                     file: 'urbanstreet.mp3',   db: 50},
+]
+
+function audioIconSVG(iconName) {
+  const icons = {
+    noise:        '<svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M4 12h2m2-4v8m2-6v4m2-8v12m2-8v4m2-6v8m2-4h2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M3 7.5h18M3 16.5h18" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" opacity=".35"/></svg>',
+    softNoise:    '<svg width="20" height="20" viewBox="0 0 24 24" fill="none"><circle cx="7" cy="12" r="1.6" fill="currentColor" opacity=".9"/><circle cx="12" cy="9" r="1.9" fill="currentColor" opacity=".8"/><circle cx="16.5" cy="13" r="1.5" fill="currentColor" opacity=".75"/><path d="M4 6.5h16M4 17.5h16" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" opacity=".25"/></svg>',
+    'soft-noise': '<svg width="20" height="20" viewBox="0 0 24 24" fill="none"><circle cx="7" cy="12" r="1.6" fill="currentColor" opacity=".9"/><circle cx="12" cy="9" r="1.9" fill="currentColor" opacity=".8"/><circle cx="16.5" cy="13" r="1.5" fill="currentColor" opacity=".75"/><path d="M4 6.5h16M4 17.5h16" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" opacity=".25"/></svg>',
+    rain:         '<svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M6 15.5a4.5 4.5 0 1 1 1.5-8.75A5.5 5.5 0 0 1 18.5 9c0 .17 0 .33-.02.5A3.5 3.5 0 0 1 18 16H6z" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/><path d="M8 18v2M12 17v3M16 18v2" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>',
+    forest:       '<svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M12 3l5 7h-3l4 6h-3l3 5H6l3-5H6l4-6H7l5-7z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M12 20v-4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>',
+    tone:         '<svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M9 19V6l12-3v13" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/><path d="M9 19c0 1.1-.9 2-2 2s-2-.9-2-2 .9-2 2-2 2 .9 2 2zm12-3c0 1.1-.9 2-2 2s-2-.9-2-2 .9-2 2-2 2 .9 2 2z" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+    spark:        '<svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M12 3l1.8 5.3L19 10l-5.2 1.7L12 17l-1.8-5.3L5 10l5.2-1.7L12 3z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M18 16l.8 2.2L21 19l-2.2.8L18 22l-.8-2.2L15 19l2.2-.8L18 16z" fill="currentColor" opacity=".75"/></svg>',
+    brain:        '<svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M9 6a3 3 0 0 1 6 0c1.7 0 3 1.3 3 3a3 3 0 0 1-1.2 2.4A3 3 0 0 1 16 16a3 3 0 0 1-3 3H11a3 3 0 0 1-3-3 3 3 0 0 1-1.8-5.6A3 3 0 0 1 9 6z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>',
+    ocean:        '<svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M4 9c1.2 0 1.8-.8 2.6-1.4C7.5 7 8.4 6.5 10 6.5s2.5.5 3.4 1.1c.8.6 1.4 1.4 2.6 1.4s1.8-.8 2.6-1.4C19.5 7 20.4 6.5 22 6.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M4 13c1.2 0 1.8-.8 2.6-1.4C7.5 11 8.4 10.5 10 10.5s2.5.5 3.4 1.1c.8.6 1.4 1.4 2.6 1.4s1.8-.8 2.6-1.4C19.5 11 20.4 10.5 22 10.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M4 17c1.2 0 1.8-.8 2.6-1.4C7.5 15 8.4 14.5 10 14.5s2.5.5 3.4 1.1c.8.6 1.4 1.4 2.6 1.4s1.8-.8 2.6-1.4C19.5 15 20.4 14.5 22 14.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>',
+    piano:        '<svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M22 6H19V3a1 1 0 0 0-1-1H14a1 1 0 0 0-1 1V6H11V3a1 1 0 0 0-1-1H6A1 1 0 0 0 5 3V6H2A1 1 0 0 0 1 7V21a1 1 0 0 0 1 1H22a1 1 0 0 0 1-1V7A1 1 0 0 0 22 6ZM15 4h2v7H15ZM7 4H9v7H7ZM21 20H17V15a1 1 0 0 0-2 0v5H9V15a1 1 0 0 0-2 0v5H3V8H5v4a1 1 0 0 0 1 1h4a1 1 0 0 0 1-1V8h2v4a1 1 0 0 0 1 1h4a1 1 0 0 0 1-1V8h2Z" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" opacity=".25"></path></svg>'
+  };
+  return icons[iconName] || icons.tone;
+}
+
+/* ----------------------------------------------------------------
+   Perfis
+   ---------------------------------------------------------------- */
+const BUILTIN_PROFILES = {
+  home:      { id: 'home',      name: 'Casa',       sensitivity: 'low',  cooldownFactor: 1.0, debounceFactor: 1.1, thresholdDelta: 0,   dbOffsetDelta: 0 },
+  school:    { id: 'school',    name: 'Escola',     sensitivity: 'mid',  cooldownFactor: 0.9, debounceFactor: 1.0, thresholdDelta: -2,  dbOffsetDelta: -1 },
+  work:      { id: 'work',      name: 'Trabalho',   sensitivity: 'mid',  cooldownFactor: 1.0, debounceFactor: 1.0, thresholdDelta: 2,   dbOffsetDelta: 0 },
+  transport: { id: 'transport', name: 'Transporte', sensitivity: 'high', cooldownFactor: 0.7, debounceFactor: 0.7, thresholdDelta: -6,  dbOffsetDelta: -2 },
+  sleep:     { id: 'sleep',     name: 'Sono',       sensitivity: 'low',  cooldownFactor: 1.8, debounceFactor: 1.6, thresholdDelta: -10, dbOffsetDelta: 1 },
+};
+
+const DEFAULT_PROFILE_BASE = {
+  sensitivity: 'mid',
+  cooldown: 3,
+  debounce: 800,
+  noiseNotifyThreshold: 80,
+  dbOffset: 0,
+}
+
+const CALIBRATION_SEQUENCE = DEFAULT_TRIGGERING_CATALOG.map((item) => ({
+  id: item.id,
+  name: item.name,
+  db: item.referenceDb,
+  icon: item.icon,
+  file: item.file
+}));
+
+const SENSITIVITY_CONFIG = {
+  low:  { smoothing: 0.95, offsetMult: 0.8, cooldown: 5 },
+  mid:  { smoothing: 0.85, offsetMult: 1.0, cooldown: 3 },
+  hidh: { smoothing: 0.70, offsetMult: 1.2, cooldown: 1 },
+}
 
 /* ----------------------------------------------------------------
    Estado global
    ---------------------------------------------------------------- */
 const state = {
+  // Config
   theme: 'dark',
-  connection: 'disconnected',
-  deviceId: null,
-  firmware: '0.7.2.41219',
-  battery: 78,
-  decibels: null,
+  sensitivity: 'mid',
+  cooldown: 3,
+  debounce: 800,
+  dbOffset: 0,
+  noiseNotifyThreshold: 80,
+  notifyOnTrigger: true,
+  activeProfile: null,
+  profileBase: { ...DEFAULT_PROFILE_BASE },
+  profileOverrides: {},
+  customProfiles: [],
+
+  // Runtime
+  audios: [],   // { id, name, isDefault, src (objectURL ou path), storedKey, volume, icon }
+  triggers: [], // { id, name, dbMin, dbMax, audioId, volume, enabled }
+  history: [],  // { type, text, db, timestamp }
+
+  // Status da sessão
+  monitoringActive: false,
+  sessionStart: null,
+  sessionDbValues: [],
+  sessionTriggerCount: 0,
+  sessionMaxDb: null,
+  sessionWindows: [],
+  currentWindow: null,
+
+  // Player
   isPlaying: false,
-  currentAudioIndex: null,
-  audios: [],
-  batNotifyThreshold: 20,
-  ecoMode: false,
-  ecoThreshold: 0,
+  currentAudioId: null,
+
+  // Persistência
+  dbStat: { max: null, avg: null, triggerCount: 0 },
+
+  // Calibração guiada
+  calibrationIndex: 0,
+  CalibrationResponses: [],
+
+  // Desenvolvimento
+  debugMode: true,
+  software: '0.9.0.260604.1753b0',
 };
 
 let _audioEl = null;
@@ -56,23 +140,13 @@ let _stream = null;
 
 let dbTimer = null;
 
-EarGuard.start();
-
-setInterval(async () => {
-
-
-  const r = await EarGuard.getCurrentDb();
-
-  console.log('DB=', r.db);
-
-}, 1000);
-
 console.log(JSON.stringify(Object.keys(window.Capacitor?.Plugins || {})));
 
 /* ----------------------------------------------------------------
    Boot
    ---------------------------------------------------------------- */
 document.addEventListener('DOMContentLoaded', function () {
+  defineSoftwareVersion();
   loadFromStorage();
   applyTheme(state.theme);
   syncThemeSelect();
@@ -84,6 +158,11 @@ document.addEventListener('DOMContentLoaded', function () {
   startBatteryDrain();
   initMicrophone();
 });
+
+function defineSoftwareVersion() {
+  let versionEl = document.getElementById('footer-sv');
+  versionEl.innerText = state.software;
+}
 
 /* ----------------------------------------------------------------
    Persistência
@@ -356,35 +435,6 @@ function _checkBatNotify() {
 }
 
 /* ----------------------------------------------------------------
-   Bluetooth
-   ---------------------------------------------------------------- */
-function pairHeadset() {
-  showToast("Ainda será implementado", "warn");
-}
-function updateConnectionUI() {
-  var connText = document.getElementById('cfg-conn-text');
-  var authText = document.getElementById('cfg-auth-text');
-  var footerId = document.getElementById('footer-device-id');
-  if (!connText) return;
-  if (state.connection === 'authorized') {
-    connText.textContent = 'Conectado';
-    connText.className = 'status-val connected';
-    if (authText) authText.textContent = '(autorizado)';
-  } else if (state.connection === 'connected') {
-    connText.textContent = 'Conectado';
-    connText.className = 'status-val connected';
-    if (authText) authText.textContent = '(nao autorizado)';
-  } else {
-    connText.textContent = 'Desconectado';
-    connText.className = 'status-val disconnected';
-    if (authText) authText.textContent = '';
-  }
-  if (footerId) footerId.textContent = state.deviceId || '\u2014';
-  var pairBtn = document.querySelector('.pair-btn');
-  if (pairBtn) pairBtn.textContent = state.connection !== 'disconnected' ? 'Desconectar Headset' : 'Parear Headset via Bluetooth';
-}
-
-/* ----------------------------------------------------------------
    Tela add áudio
    ---------------------------------------------------------------- */
 function switchAddTab(tab) {
@@ -425,6 +475,18 @@ function renderDefaultGrid() {
   }).join('');
 }
 
+async function getFileSize(url) {
+  const response = await fetch(url);
+  const blob = await response.blob();
+
+  const sizeKB = (blob.size / 1024).toFixed(2)
+  
+  if (parseFloat(sizeKB) < 1) return `${sizeKB} KB`;
+
+  const sizeMB = (blob.size / (1024 * 1024)).toFixed(2);
+  return `${sizeMB} MB`;
+}
+
 function addDefaultAudio(catalogId) {
   var d = DEFAULT_AUDIOS_CATALOG.find(function (x) { return x.id === catalogId; });
   if (!d) return;
@@ -432,17 +494,19 @@ function addDefaultAudio(catalogId) {
   var exists = state.audios.some(function (a) { return a.catalogId === catalogId; });
   if (exists) { showToast('Som ja foi adicionado', 'warn'); return; }
 
+  const src = 'static/audios/' + d.file;
+  const size = await getFileSize(src);
+
   state.audios.push({
     id: catalogId + '_' + Date.now(),
     catalogId: catalogId,
     name: d.name,
     file: d.file,
-    ext: '.wav',
-    size: '~2.5 MB',
+    size: size,
     dbMin: d.dbMin,
     dbMax: d.dbMax,
     isDefault: true,
-    src: 'static/audios/' + d.file,
+    src: src,
     addedAt: new Date().toLocaleDateString('pt-BR'),
   });
 
