@@ -238,15 +238,15 @@
         <div class="config-row">
           <div class="config-row-info">
             <span class="config-row-label">Desvio de calibração</span>
-            <span class="config-row-hint">Ajuste manual do valor estimado de dB</span>
+            <span class="config-row-hint">Ajuste manual do valor final de decibéis</span>
           </div>
           <div class="config-input-inline">
-            <input type="number" class="config-input" id="offset-input" min="-30" max="30" value="0">
+            <input type="number" class="config-input" id="offset-input" min="-100" max="100" value="0">
             <span class="unit-label">dB</span>
           </div>
         </div>
         <button class="config-save-btn" onclick="saveMonitorConfig()">Salvar configurações</button>
-        <button class="config-calibrate-btn" onclick="startCalibrationFlow()">Ajuste guiado por áudio →</button>
+        <button class="config-calibrate-btn" onclick="startCalibrationFlow()">Ajuste guiado por áudio &rarr;</button>
       </div>
 
       <div class="config-section">
@@ -254,17 +254,6 @@
         <div id="profiles-manager"></div>
         <div class="profile-asset-footer">
           <button class="config-save-btn" onclick="openProfileEditor()">Criar novo perfil</button>
-        </div>
-      </div>
-
-      <div class="config-section">
-        <div class="config-section-title">Áudio de emergência</div>
-        <div class="config-row">
-          <div class="config-row-info">
-            <span class="config-row-label">Som de emergência</span>
-            <span class="config-row-hint" id="emergency-audio-name">Nenhum selecionado</span>
-          </div>
-          <button class="config-select-btn" onclick="openSelectEmergencyModal()">Selecionar</button>
         </div>
       </div>
 
@@ -303,9 +292,9 @@
       </div>
 
       <div class="config-footer">
-        <p>EarGuard — Proteção auditiva inteligente</p>
-        <p>Valores de dB são estimativas baseadas no microfone do dispositivo. Não substituem medição profissional.</p>
-        <p><a class="footer-link" href="mailto:contato@earguard.app">contato@earguard.app</a></p>
+        <p>Todos os direitos reservados.</p>
+        <p>Versão do software: <span id="footer-sv">&mdash;</span></p>
+        <p>Contato: <a class="footer-email" href="mailto:contato@earguard.app">contato@earguard.app</a></p>
       </div>
 
     </div>

@@ -1,7 +1,5 @@
 "use strict";
 
-const DEBUG_MODE = true;
-
 /* ----------------------------------------------------------------
    Sons integrados
    ---------------------------------------------------------------- */
@@ -35,10 +33,10 @@ function audioIconSVG(iconName) {
    Perfis
    ---------------------------------------------------------------- */
 const BUILTIN_PROFILES = {
-  home:      { id: 'home',      name: 'Casa',       sensitivity: 'low',  cooldownFactor: 1.0, debounceFactor: 1.1, thresholdDelta: 0,  dbOffsetDelta: 0 },
-  school:    { id: 'school',    name: 'Escola',     sensitivity: 'mid',  cooldownFactor: 0.9, debounceFactor: 1.0, thresholdDelta: -2, dbOffsetDelta: -1 },
-  work:      { id: 'work',      name: 'Trabalho',   sensitivity: 'mid',  cooldownFactor: 1.0, debounceFactor: 1.0, thresholdDelta: 2,  dbOffsetDelta: 0 },
-  transport: { id: 'transport', name: 'Transporte', sensitivity: 'high', cooldownFactor: 0.7, debounceFactor: 0.7, thresholdDelta: -6, dbOffsetDelta: -2 },
+  home:      { id: 'home',      name: 'Casa',       sensitivity: 'low',  cooldownFactor: 1.0, debounceFactor: 1.1, thresholdDelta: 0,   dbOffsetDelta: 0 },
+  school:    { id: 'school',    name: 'Escola',     sensitivity: 'mid',  cooldownFactor: 0.9, debounceFactor: 1.0, thresholdDelta: -2,  dbOffsetDelta: -1 },
+  work:      { id: 'work',      name: 'Trabalho',   sensitivity: 'mid',  cooldownFactor: 1.0, debounceFactor: 1.0, thresholdDelta: 2,   dbOffsetDelta: 0 },
+  transport: { id: 'transport', name: 'Transporte', sensitivity: 'high', cooldownFactor: 0.7, debounceFactor: 0.7, thresholdDelta: -6,  dbOffsetDelta: -2 },
   sleep:     { id: 'sleep',     name: 'Sono',       sensitivity: 'low',  cooldownFactor: 1.8, debounceFactor: 1.6, thresholdDelta: -10, dbOffsetDelta: 1 },
 };
 
@@ -76,7 +74,6 @@ const state = {
   dbOffset: 0,
   noiseNotifyThreshold: 80,
   notifyOnTrigger: true,
-  emergencyAudioId: null,
   activeProfile: null,
   profileBase: { ...DEFAULT_PROFILE_BASE },
   profileOverrides: {},
@@ -106,6 +103,10 @@ const state = {
   // Calibração guiada
   calibrationIndex: 0,
   calibrationResponses: [],
+
+  // Desenvolvimento
+  debugMode: true,
+  software: '0.9.0.260604.1753b0',
 };
 
 /* ----------------------------------------------------------------
@@ -628,6 +629,8 @@ function _startDbLoop() {
     const sensOffset = (SENSITIVITY_CONFIG[state.sensitivity].offsetMult - 1) * 10;
     const db = Math.max(0, Math.round(dbFS + 80 + state.dbOffset + sensOffset));
 
+    //console.info("dB: ", db);
+
     updateDbUI(db);
     _checkTriggersDebounced(db);
 
@@ -637,6 +640,7 @@ function _startDbLoop() {
       calDisplay.textContent = db;
     }
   };
+  
   tick();
 }
 
@@ -769,7 +773,7 @@ function playAudioById(audioId, volume) {
   });
 
   _audioEl.addEventListener('error', () => {
-    if (DEBUG_MODE) showToast('Erro ao carregar áudio', 'error');
+    if (state.debugMode) showToast('Erro ao carregar áudio', 'error');
     state.isPlaying = false;
     updateNowPlayingUI();
   });
