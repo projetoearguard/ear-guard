@@ -10,9 +10,24 @@ const DEFAULT_AUDIOS_CATALOG = [
   { id: 'forest', name: 'Floresta',     icon: 'forest',    desc: 'Sons da natureza',          referenceDb: 30, file: 'forest' },
   { id: '432hz',  name: '432 Hz',       icon: 'tone',      desc: 'Tom de relaxamento',        referenceDb: 30 },
   { id: '528hz',  name: '528 Hz',       icon: 'spark',     desc: 'Tom de regeneração',        referenceDb: 30 },
-  { id: '40hz',   name: '40 Hz Gamma',  icon: 'brain',     desc: 'Estimulação cognitiva',     referenceDb: 30 },
+  //{ id: '40hz',   name: '40 Hz Gamma',  icon: 'brain',     desc: 'Estimulação cognitiva',     referenceDb: 30 },
   { id: 'ocean',  name: 'Ondas do Mar', icon: 'ocean',     desc: 'Ondas ritmadas',            referenceDb: 30 },
+  { id: 'piano',  name: 'Piano Calmo',  icon: 'piano',     desc: "Piano calmo",               file: 'piano.mp3',  dbMin: 36, dbMax: 40, referenceDb: 20 },
 ];
+
+const DEFAULT_TRIGGERING_CATALOG = [
+  { id: 'babycry',    name: 'Bebê chorando',         desc: 'Um bebê chorando',                                    file: 'babycrying.mp3',    db: 50},
+  { id: 'drill',      name: 'Furadeira',             desc: 'Som de uma furadeira em funcionamento',               file: 'drill.mp3',         db: 50},
+  { id: 'fireworks',  name: 'Fogos de artifício',    desc: 'Explosões de fogos de artifício durante comemoração', file: 'fireworks.mp3',     db: 50},
+  { id: 'hairdryer',  name: 'Secador de cabelo',     desc: 'Som de secador de cabelo em funcionamento',           file: 'hairdryer.mp3',     db: 50},
+  { id: 'alarm',      name: 'Alarme',                desc: 'Alarme de desastre natural',                          file: 'mgalarm.mp3',       db: 50},
+  { id: 'talking',    name: 'Pessoas falando',       desc: 'Sons de pessoas falando',                             file: 'peopletalking.mp3', db: 50},
+  { id: 'restaurant', name: 'Restaurante',           desc: 'Sons de pessoas falando e comendo em um restaurante', file: 'restaurant.mp3',    db: 50},
+  { id: 'subway',     name: 'Metrô',                 desc: 'Sons de uma estação de metrô',                        file: 'spsubway.mp3',      db: 50},
+  { id: 'static',     name: 'Estática de televisão', desc: 'Som de estática de televisão',                        file: 'static.mp3',        db: 50},
+  { id: 'traffic',    name: 'Tráfego',               desc: 'Som de carros em uma rua',                            file: 'traffic.mp3',       db: 50},
+  { id: 'streets',    name: 'Ruas urbanas',          desc: 'Som atravessando uma rua urbana',                     file: 'urbanstreet.mp3',   db: 50},
+]
 
 function audioIconSVG(iconName) {
   const icons = {
@@ -25,6 +40,7 @@ function audioIconSVG(iconName) {
     spark: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M12 3l1.8 5.3L19 10l-5.2 1.7L12 17l-1.8-5.3L5 10l5.2-1.7L12 3z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M18 16l.8 2.2L21 19l-2.2.8L18 22l-.8-2.2L15 19l2.2-.8L18 16z" fill="currentColor" opacity=".75"/></svg>',
     brain: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M9 6a3 3 0 0 1 6 0c1.7 0 3 1.3 3 3a3 3 0 0 1-1.2 2.4A3 3 0 0 1 16 16a3 3 0 0 1-3 3H11a3 3 0 0 1-3-3 3 3 0 0 1-1.8-5.6A3 3 0 0 1 9 6z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>',
     ocean: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M4 9c1.2 0 1.8-.8 2.6-1.4C7.5 7 8.4 6.5 10 6.5s2.5.5 3.4 1.1c.8.6 1.4 1.4 2.6 1.4s1.8-.8 2.6-1.4C19.5 7 20.4 6.5 22 6.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M4 13c1.2 0 1.8-.8 2.6-1.4C7.5 11 8.4 10.5 10 10.5s2.5.5 3.4 1.1c.8.6 1.4 1.4 2.6 1.4s1.8-.8 2.6-1.4C19.5 11 20.4 10.5 22 10.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M4 17c1.2 0 1.8-.8 2.6-1.4C7.5 15 8.4 14.5 10 14.5s2.5.5 3.4 1.1c.8.6 1.4 1.4 2.6 1.4s1.8-.8 2.6-1.4C19.5 15 20.4 14.5 22 14.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>',
+    piano: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M22 6H19V3a1 1 0 0 0-1-1H14a1 1 0 0 0-1 1V6H11V3a1 1 0 0 0-1-1H6A1 1 0 0 0 5 3V6H2A1 1 0 0 0 1 7V21a1 1 0 0 0 1 1H22a1 1 0 0 0 1-1V7A1 1 0 0 0 22 6ZM15 4h2v7H15ZM7 4H9v7H7ZM21 20H17V15a1 1 0 0 0-2 0v5H9V15a1 1 0 0 0-2 0v5H3V8H5v4a1 1 0 0 0 1 1h4a1 1 0 0 0 1-1V8h2v4a1 1 0 0 0 1 1h4a1 1 0 0 0 1-1V8h2Z" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" opacity=".25"></path></svg>'
   };
   return icons[iconName] || icons.tone;
 }
@@ -98,7 +114,12 @@ const state = {
   currentAudioId: null,
 
   // Persistência
-  dbStat: { max: null, avg: null, triggerCount: 0 },
+  dbStat: {
+    max: null,
+    avg: null,
+    min: null,
+    triggerCount: 0
+  },
 
   // Calibração guiada
   calibrationIndex: 0,
@@ -158,6 +179,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   setupSlider('edit-vol-slider', 'edit-vol-val');
 
   showScreen('home');
+  _setText('footer-sv', state.software);
 });
 
 /* ================================================================
@@ -545,9 +567,7 @@ async function startMonitoring() {
     }
   }
 
-  if (_audioCtxMic && _audioCtxMic.state === 'suspended') {
-    await _audioCtxMic.resume();
-  }
+  if (_audioCtxMic && _audioCtxMic.state === 'suspended') await _audioCtxMic.resume();
 
   state.monitoringActive = true;
   state.sessionStart = Date.now();
@@ -561,9 +581,7 @@ async function startMonitoring() {
   };
 
   // Ajusta smoothing pela sensibilidade
-  if (_analyser) {
-    _analyser.smoothingTimeConstant = SENSITIVITY_CONFIG[state.sensitivity].smoothing;
-  }
+  if (_analyser) _analyser.smoothingTimeConstant = SENSITIVITY_CONFIG[state.sensitivity].smoothing;
 
   document.getElementById('btn-start-monitor').style.display = 'none';
   document.getElementById('btn-stop-monitor').style.display = 'flex';
@@ -583,8 +601,14 @@ function stopMonitoring() {
   state.monitoringActive = false;
   _finalizeSessionWindow(true);
 
-  if (_dbRafId) { cancelAnimationFrame(_dbRafId); _dbRafId = null; }
-  if (_statsInterval) { clearInterval(_statsInterval); _statsInterval = null; }
+  if (_dbRafId) {
+    cancelAnimationFrame(_dbRafId);
+    _dbRafId = null;
+  }
+  if (_statsInterval) {
+    clearInterval(_statsInterval);
+    _statsInterval = null;
+  }
 
   document.getElementById('btn-start-monitor').style.display = 'flex';
   document.getElementById('btn-stop-monitor').style.display = 'none';
@@ -616,6 +640,7 @@ function resetMonitoring() {
 function _startDbLoop() {
   if (!_analyser) return;
   const buffer = new Float32Array(_analyser.fftSize);
+  var current = -1;
 
   const tick = () => {
     if (!state.monitoringActive) return;
@@ -629,16 +654,17 @@ function _startDbLoop() {
     const sensOffset = (SENSITIVITY_CONFIG[state.sensitivity].offsetMult - 1) * 10;
     const db = Math.max(0, Math.round(dbFS + 80 + state.dbOffset + sensOffset));
 
-    //console.info("dB: ", db);
+    if (state.debugMode && db !== current) {
+      console.info("dB: ", db);
+      current = db;
+    }
 
     updateDbUI(db);
     _checkTriggersDebounced(db);
 
     // Atualiza display calibração se aberta
     const calDisplay = document.getElementById('cal-db-live');
-    if (calDisplay && document.getElementById('screen-calibration').classList.contains('active')) {
-      calDisplay.textContent = db;
-    }
+    if (calDisplay && document.getElementById('screen-calibration').classList.contains('active')) calDisplay.textContent = db;
   };
   
   tick();
@@ -656,7 +682,7 @@ function updateDbUI(db) {
   _setText('monitor-db', db);
 
   // Barra de nível (0-100 mapeado para 0%-100%)
-  const pct = Math.min(100, (db / 100) * 100);
+  const pct = Math.min(100, db);
   document.getElementById('monitor-bar-fill').style.width = pct + '%';
 
   // Alerta visual

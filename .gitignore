@@ -1,5 +1,5 @@
 node_modules/ 
 autobuildearguardplugin.bat 
-indexc.html
-scriptc.js
-stylec.css
+dist/indexc.html
+dist/static/js/scriptc.js
+dist/static/css/stylec.css

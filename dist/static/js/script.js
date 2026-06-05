@@ -10,9 +10,9 @@ const DEFAULT_AUDIOS_CATALOG = [
   { id: 'forest', name: 'Floresta',     icon: 'forest',    desc: "Sons da natureza",          file: 'forest.mp3', dbMin: 16, dbMax: 20, referenceDb: 20 },
   { id: '432hz',  name: '432 Hz',       icon: 'tone',      desc: "Tom de relaxamento",        file: '432hz.mp3',  dbMin: 21, dbMax: 25, referenceDb: 20 },
   { id: '528hz',  name: '528 Hz',       icon: 'spark',     desc: "Tom de regeneração",        file: '528hz.mp3',  dbMin: 26, dbMax: 30, referenceDb: 20 },
-  { id: '40hz',   name: '40 Hz Gamma',  icon: 'brain',     desc: "Estimulação cognitiva",     file: '40hz.mp3',   dbMin: 31, dbMax: 35, referenceDb: 20 },
-  { id: 'ocean',  name: 'Ondas do Mar', icon: 'ocean',     desc: "Ondas ritmadas",            file: 'ocean.mp3',  dbMin: 36, dbMax: 40, referenceDb: 20 },
-  { id: 'piano',  name: 'Piano Calmo',  icon: 'piano',     desc: "Piano calmo",               file: 'piano.mp3',  dbMin: 41, dbMax: 45, referenceDb: 20 },
+  //{ id: '40hz',   name: '40 Hz Gamma',  icon: 'brain',     desc: "Estimulação cognitiva",     file: '40hz.mp3',   dbMin: 31, dbMax: 35, referenceDb: 20 },
+  { id: 'ocean',  name: 'Ondas do Mar', icon: 'ocean',     desc: "Ondas ritmadas",            file: 'ocean.mp3',  dbMin: 31, dbMax: 35, referenceDb: 20 },
+  { id: 'piano',  name: 'Piano Calmo',  icon: 'piano',     desc: "Piano calmo",               file: 'piano.mp3',  dbMin: 36, dbMax: 40, referenceDb: 20 },
 ];
 
 const DEFAULT_TRIGGERING_CATALOG = [
@@ -31,16 +31,16 @@ const DEFAULT_TRIGGERING_CATALOG = [
 
 function audioIconSVG(iconName) {
   const icons = {
-    noise:        '<svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M4 12h2m2-4v8m2-6v4m2-8v12m2-8v4m2-6v8m2-4h2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M3 7.5h18M3 16.5h18" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" opacity=".35"/></svg>',
-    softNoise:    '<svg width="20" height="20" viewBox="0 0 24 24" fill="none"><circle cx="7" cy="12" r="1.6" fill="currentColor" opacity=".9"/><circle cx="12" cy="9" r="1.9" fill="currentColor" opacity=".8"/><circle cx="16.5" cy="13" r="1.5" fill="currentColor" opacity=".75"/><path d="M4 6.5h16M4 17.5h16" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" opacity=".25"/></svg>',
+    noise: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M4 12h2m2-4v8m2-6v4m2-8v12m2-8v4m2-6v8m2-4h2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M3 7.5h18M3 16.5h18" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" opacity=".35"/></svg>',
+    softNoise: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none"><circle cx="7" cy="12" r="1.6" fill="currentColor" opacity=".9"/><circle cx="12" cy="9" r="1.9" fill="currentColor" opacity=".8"/><circle cx="16.5" cy="13" r="1.5" fill="currentColor" opacity=".75"/><path d="M4 6.5h16M4 17.5h16" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" opacity=".25"/></svg>',
     'soft-noise': '<svg width="20" height="20" viewBox="0 0 24 24" fill="none"><circle cx="7" cy="12" r="1.6" fill="currentColor" opacity=".9"/><circle cx="12" cy="9" r="1.9" fill="currentColor" opacity=".8"/><circle cx="16.5" cy="13" r="1.5" fill="currentColor" opacity=".75"/><path d="M4 6.5h16M4 17.5h16" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" opacity=".25"/></svg>',
-    rain:         '<svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M6 15.5a4.5 4.5 0 1 1 1.5-8.75A5.5 5.5 0 0 1 18.5 9c0 .17 0 .33-.02.5A3.5 3.5 0 0 1 18 16H6z" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/><path d="M8 18v2M12 17v3M16 18v2" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>',
-    forest:       '<svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M12 3l5 7h-3l4 6h-3l3 5H6l3-5H6l4-6H7l5-7z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M12 20v-4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>',
-    tone:         '<svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M9 19V6l12-3v13" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/><path d="M9 19c0 1.1-.9 2-2 2s-2-.9-2-2 .9-2 2-2 2 .9 2 2zm12-3c0 1.1-.9 2-2 2s-2-.9-2-2 .9-2 2-2 2 .9 2 2z" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>',
-    spark:        '<svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M12 3l1.8 5.3L19 10l-5.2 1.7L12 17l-1.8-5.3L5 10l5.2-1.7L12 3z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M18 16l.8 2.2L21 19l-2.2.8L18 22l-.8-2.2L15 19l2.2-.8L18 16z" fill="currentColor" opacity=".75"/></svg>',
-    brain:        '<svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M9 6a3 3 0 0 1 6 0c1.7 0 3 1.3 3 3a3 3 0 0 1-1.2 2.4A3 3 0 0 1 16 16a3 3 0 0 1-3 3H11a3 3 0 0 1-3-3 3 3 0 0 1-1.8-5.6A3 3 0 0 1 9 6z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>',
-    ocean:        '<svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M4 9c1.2 0 1.8-.8 2.6-1.4C7.5 7 8.4 6.5 10 6.5s2.5.5 3.4 1.1c.8.6 1.4 1.4 2.6 1.4s1.8-.8 2.6-1.4C19.5 7 20.4 6.5 22 6.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M4 13c1.2 0 1.8-.8 2.6-1.4C7.5 11 8.4 10.5 10 10.5s2.5.5 3.4 1.1c.8.6 1.4 1.4 2.6 1.4s1.8-.8 2.6-1.4C19.5 11 20.4 10.5 22 10.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M4 17c1.2 0 1.8-.8 2.6-1.4C7.5 15 8.4 14.5 10 14.5s2.5.5 3.4 1.1c.8.6 1.4 1.4 2.6 1.4s1.8-.8 2.6-1.4C19.5 15 20.4 14.5 22 14.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>',
-    piano:        '<svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M22 6H19V3a1 1 0 0 0-1-1H14a1 1 0 0 0-1 1V6H11V3a1 1 0 0 0-1-1H6A1 1 0 0 0 5 3V6H2A1 1 0 0 0 1 7V21a1 1 0 0 0 1 1H22a1 1 0 0 0 1-1V7A1 1 0 0 0 22 6ZM15 4h2v7H15ZM7 4H9v7H7ZM21 20H17V15a1 1 0 0 0-2 0v5H9V15a1 1 0 0 0-2 0v5H3V8H5v4a1 1 0 0 0 1 1h4a1 1 0 0 0 1-1V8h2v4a1 1 0 0 0 1 1h4a1 1 0 0 0 1-1V8h2Z" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" opacity=".25"></path></svg>'
+    rain: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M6 15.5a4.5 4.5 0 1 1 1.5-8.75A5.5 5.5 0 0 1 18.5 9c0 .17 0 .33-.02.5A3.5 3.5 0 0 1 18 16H6z" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/><path d="M8 18v2M12 17v3M16 18v2" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>',
+    forest: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M12 3l5 7h-3l4 6h-3l3 5H6l3-5H6l4-6H7l5-7z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M12 20v-4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>',
+    tone: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M9 19V6l12-3v13" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/><path d="M9 19c0 1.1-.9 2-2 2s-2-.9-2-2 .9-2 2-2 2 .9 2 2zm12-3c0 1.1-.9 2-2 2s-2-.9-2-2 .9-2 2-2 2 .9 2 2z" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+    spark: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M12 3l1.8 5.3L19 10l-5.2 1.7L12 17l-1.8-5.3L5 10l5.2-1.7L12 3z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M18 16l.8 2.2L21 19l-2.2.8L18 22l-.8-2.2L15 19l2.2-.8L18 16z" fill="currentColor" opacity=".75"/></svg>',
+    brain: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M9 6a3 3 0 0 1 6 0c1.7 0 3 1.3 3 3a3 3 0 0 1-1.2 2.4A3 3 0 0 1 16 16a3 3 0 0 1-3 3H11a3 3 0 0 1-3-3 3 3 0 0 1-1.8-5.6A3 3 0 0 1 9 6z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>',
+    ocean: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M4 9c1.2 0 1.8-.8 2.6-1.4C7.5 7 8.4 6.5 10 6.5s2.5.5 3.4 1.1c.8.6 1.4 1.4 2.6 1.4s1.8-.8 2.6-1.4C19.5 7 20.4 6.5 22 6.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M4 13c1.2 0 1.8-.8 2.6-1.4C7.5 11 8.4 10.5 10 10.5s2.5.5 3.4 1.1c.8.6 1.4 1.4 2.6 1.4s1.8-.8 2.6-1.4C19.5 11 20.4 10.5 22 10.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M4 17c1.2 0 1.8-.8 2.6-1.4C7.5 15 8.4 14.5 10 14.5s2.5.5 3.4 1.1c.8.6 1.4 1.4 2.6 1.4s1.8-.8 2.6-1.4C19.5 15 20.4 14.5 22 14.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>',
+    piano: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M22 6H19V3a1 1 0 0 0-1-1H14a1 1 0 0 0-1 1V6H11V3a1 1 0 0 0-1-1H6A1 1 0 0 0 5 3V6H2A1 1 0 0 0 1 7V21a1 1 0 0 0 1 1H22a1 1 0 0 0 1-1V7A1 1 0 0 0 22 6ZM15 4h2v7H15ZM7 4H9v7H7ZM21 20H17V15a1 1 0 0 0-2 0v5H9V15a1 1 0 0 0-2 0v5H3V8H5v4a1 1 0 0 0 1 1h4a1 1 0 0 0 1-1V8h2v4a1 1 0 0 0 1 1h4a1 1 0 0 0 1-1V8h2Z" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" opacity=".25"></path></svg>'
   };
   return icons[iconName] || icons.tone;
 }
@@ -62,7 +62,7 @@ const DEFAULT_PROFILE_BASE = {
   debounce: 800,
   noiseNotifyThreshold: 80,
   dbOffset: 0,
-}
+};
 
 const CALIBRATION_SEQUENCE = DEFAULT_TRIGGERING_CATALOG.map((item) => ({
   id: item.id,
@@ -76,7 +76,7 @@ const SENSITIVITY_CONFIG = {
   low:  { smoothing: 0.95, offsetMult: 0.8, cooldown: 5 },
   mid:  { smoothing: 0.85, offsetMult: 1.0, cooldown: 3 },
   hidh: { smoothing: 0.70, offsetMult: 1.2, cooldown: 1 },
-}
+};
 
 /* ----------------------------------------------------------------
    Estado global
@@ -100,7 +100,7 @@ const state = {
   triggers: [], // { id, name, dbMin, dbMax, audioId, volume, enabled }
   history: [],  // { type, text, db, timestamp }
 
-  // Status da sessão
+  // Stats sessão
   monitoringActive: false,
   sessionStart: null,
   sessionDbValues: [],
@@ -114,55 +114,56 @@ const state = {
   currentAudioId: null,
 
   // Persistência
-  dbStat: { max: null, avg: null, triggerCount: 0 },
+  dbStat: {
+    max: null,
+    avg: null,
+    min: null,
+    triggerCount: 0
+  },
 
   // Calibração guiada
   calibrationIndex: 0,
-  CalibrationResponses: [],
+  calibrationResponses: [],
 
   // Desenvolvimento
   debugMode: true,
   software: '0.9.0.260604.1753b0',
 };
 
+/* ----------------------------------------------------------------
+   Variáveis de runtime
+   ---------------------------------------------------------------- */
 let _audioEl = null;
-let _audioCtx = null;
+let _audioCtxMic = null;
 let _analyser = null;
 let _micStream = null;
 let _micActive = false;
 let _dbRafId = null;
-let _batInterval = null;
 let _toastTimeout = null;
-let selectedAudioIndex = null;
-let _audioCtxMic = null;
-let _source = null;
-let _stream = null;
+let _cooldownUntil = 0;
+let _debounceTimer = null;
+let _pendingDb = null;
+let _previewEl = null;
+let _currentTriggerAudioId = null;
+let _statsInterval = null;
 
-let dbTimer = null;
-
-console.log(JSON.stringify(Object.keys(window.Capacitor?.Plugins || {})));
+let selectedAudioId = null;
+let editingTriggerId = null;
 
 /* ----------------------------------------------------------------
    Boot
    ---------------------------------------------------------------- */
-document.addEventListener('DOMContentLoaded', function () {
-  defineSoftwareVersion();
+document.addEventListener('DOMContentLoaded', async () => {
   loadFromStorage();
   applyTheme(state.theme);
   syncThemeSelect();
   renderAudioList();
   renderDefaultGrid();
-  updateBatteryUI();
   updateNowPlayingUI();
-  updateConnectionUI();
-  startBatteryDrain();
-  initMicrophone();
-});
 
-function defineSoftwareVersion() {
-  let versionEl = document.getElementById('footer-sv');
-  versionEl.innerText = state.software;
-}
+  showScreen('home');
+  _setText('footer-sv', state.software);
+});
 
 /* ----------------------------------------------------------------
    Persistência
@@ -237,202 +238,199 @@ function syncThemeSelect() {
   if (sel) sel.value = state.theme;
 }
 
-/* ----------------------------------------------------------------
-   Microfone
-   ---------------------------------------------------------------- */
-async function initMicrophone() {
+/* ================================================================
+   MICROFONE
+   ================================================================ */
+async function requestMicPermission() {
+  document.getElementById('permission-overlay').style.display = 'none';
+  await _initMic();
+}
+
+async function _initMic() {
+  if (_micActive) return true;
   try {
-    _stream = await navigator.mediaDevices.getUserMedia({
+    _micStream = await navigator.mediaDevices.getUserMedia({
       audio: {
         echoCancellation: false,
         noiseSuppression: false,
-        autoGainControl: false
+        autoGainControl: false,
+        channelCount: 1,
       }
     });
 
     _audioCtxMic = new (window.AudioContext || window.webkitAudioContext)();
-
     _analyser = _audioCtxMic.createAnalyser();
     _analyser.fftSize = 2048;
-    _analyser.smoothingTimeConstant = 0.8;
-
-    _source = _audioCtxMic.createMediaStreamSource(_stream);
-    _source.connect(_analyser);
-
+    _analyser.smoothingTimeConstant = SENSITIVITY_CONFIG[state.sensitivity].smoothing;
+    const source = _audioCtxMic.createMediaStreamSource(_micStream);
+    source.connect(_analyser);
     _micActive = true;
-
-    _startDbLoop();
-
-    showToast('Microfone ativo', 'success');
+    return true;
   } catch (err) {
     console.error(err);
-    showToast('Microfone indisponível', 'warn');
+    return false;
   }
 }
+
+/* ================================================================
+   MONITORAMENTO
+   ================================================================ */
 async function startMonitoring() {
+  if (state.monitoringActive) return;
 
-  dbTimer = setInterval(async () => {
-
-    try {
-
-      const result =
-        await EarGuard.getCurrentDb();
-
-      const db =
-        Math.round(result.db);
-
-      state.decibels = db;
-
-      updateDbUI(db);
-
-      _checkTriggers(db);
-
-    } catch (err) {
-
-      console.error(err);
-
-    }
-
-  }, 200);
-}
-function _startDbLoop() {
-  if (!_analyser) {
-    console.error('Analyser não inicializado');
-    return;
-  }
-
-  const buffer = new Float32Array(_analyser.fftSize);
-
-  let decibelsSensitivityOffset = 65;
-
-  function tick() {
-    try {
-      if (!_micActive) return;
-
-      _analyser.getFloatTimeDomainData(buffer);
-
-
-      /*let peak = 0;
-
-      for (let i = 0; i < buffer.length; i++) {
-          peak = Math.max(peak, Math.abs(buffer[i]));
-      }
-
-      console.log("peak=", peak);*/
-
-
-
-
-      let sum = 0;
-
-      for (let i = 0; i < buffer.length; i++) {
-        sum += buffer[i] * buffer[i];
-      }
-
-      const rms = Math.sqrt(sum / buffer.length);
-
-      const dbFS = rms > 0
-        ? 20 * Math.log10(rms)
-        : -100;
-
-      // Calibration offset
-      const dbSPL = Math.max(
-        0,
-        dbFS + decibelsSensitivityOffset
-      );
-
-
-      /*console.log({
-        rms,
-        dbFS,
-        dbSPL
-      });*/
-
-      state.decibels = Math.round(dbSPL);
-
-      updateDbUI(state.decibels);
-
-      _checkTriggers(state.decibels);
-
-      _dbRafId = requestAnimationFrame(tick);
-    } catch (e) {
-      console.error("DB LOOP CRASHED X_X: " + e)
+  // Verificar permissão
+  if (!_micActive) {
+    const ok = await _initMic();
+    if (!ok) {
+      document.getElementById('permission-overlay').style.display = 'flex';
+      return;
     }
   }
 
-  tick();
+  if (_audioCtxMic && _audioCtxMic.state === 'suspended') await _audioCtxMic.resume();
+
+  state.monitoringActive = true;
+  state.sessionStart = Date.now();
+  state.sessionDbValues = [];
+  state.sessionTriggerCount = 0;
+  state.sessionMaxDb = null;
+  state.sessionMinDb = null;
+  state.sessionWindows = [];
+  state.currentWindow = {
+    start: Date.now(),
+    samples: [],
+  };
+
+  // Ajusta smoothing pela sensibilidade
+  if (_analyser) _analyser.smoothingTimeConstant = SENSITIVITY_CONFIG[state.sensitivity].smoothing;
+
+  document.getElementById('btn-start-monitor').style.display = 'none';
+  document.getElementById('btn-stop-monitor').style.display = 'flex';
+  document.getElementById('btn-reset-monitor').style.display = 'flex';
+  document.getElementById('sensitivity-row').style.display = 'flex';
+  document.getElementById('monitor-ring').classList.add('active');
+
+  _startDbLoop();
+  _startStatsInterval();
+
+  //addHistoryEvent('info', 'Monitoramento iniciado', null);
+  showToast('Monitoramento iniciado', 'success');
 }
-function updateDbUI(db) {
-  var el = document.getElementById('db-value');
-  if (el) el.textContent = db !== null ? db + ' dB' : '-- dB';
-}
-function stopMicrophone() {
-  _micActive = false;
+
+function stopMonitoring() {
+  if (!state.monitoringActive) return;
+  state.monitoringActive = false;
+  // _finalizeSessionWindow(true);
 
   if (_dbRafId) {
     cancelAnimationFrame(_dbRafId);
     _dbRafId = null;
   }
-
-  if (_source) {
-    _source.disconnect();
-    _source = null;
+  if (_statsInterval) {
+    clearInterval(_statsInterval);
+    _statsInterval = null;
   }
 
-  if (_stream) {
-    _stream.getTracks().forEach(track => track.stop());
-    _stream = null;
-  }
+  document.getElementById('btn-start-monitor').style.display = 'flex';
+  document.getElementById('btn-stop-monitor').style.display = 'none';
+  document.getElementById('btn-reset-monitor').style.display = 'flex';
+  document.getElementById('monitor-ring').classList.remove('active');
+  document.getElementById('monitor-ring').classList.remove('alert');
+  document.getElementById('monitor-bar-fill').style.width = '0%';
 
-  if (_audioCtxMic) {
-    _audioCtxMic.close();
-    _audioCtxMic = null;
-  }
-
-  _analyser = null;
-}
-function stopMonitoring() {
-
-  if (dbTimer) {
-
-    clearInterval(dbTimer);
-
-    dbTimer = null;
-  }
+  //addHistoryEvent('info', 'Monitoramento pausado', null);
+  showToast('Monitoramento pausado', 'info');
 }
 
-/* ----------------------------------------------------------------
-   Bateria
-   ---------------------------------------------------------------- */
-function startBatteryDrain() {
-  updateBatteryUI();
-  _batInterval = setInterval(function () {
-    if (state.connection === 'disconnected') return;
-    state.battery = Math.max(0, state.battery - 0.06);
-    updateBatteryUI();
-    _checkBatNotify();
-    if (state.ecoThreshold > 0 && state.battery <= state.ecoThreshold && !state.ecoMode) {
-      state.ecoMode = true;
-      _setChecked('eco-toggle', true);
-      updateEcoBadge();
-      showToast('Modo economia ativado automaticamente', 'warn');
-      saveToStorage();
+function resetMonitoring() {
+  stopMonitoring();
+  state.sessionDbValues = [];
+  state.sessionMaxDb = null;
+  state.sessionTriggerCount = 0;
+  state.sessionWindows = [];
+  state.currentWindow = null;
+  _setText('monitor-db', '--');
+  _setText('stat-max', '--');
+  _setText('stat-avg', '--');
+  _setText('stat-triggers', '0');
+  document.getElementById('btn-reset-monitor').style.display = 'none';
+  document.getElementById('btn-start-monitor').style.display = 'flex';
+  showToast('Monitoramento reiniciado', 'info');
+}
+
+function _startDbLoop() {
+  if (!_analyser) return;
+  const buffer = new Float32Array(_analyser.fftSize);
+  var current = -1;
+
+  const tick = () => {
+    if (!state.monitoringActive) return;
+    _dbRafId = requestAnimationFrame(tick);
+
+    _analyser.getFloatTimeDomainData(buffer);
+    let sum = 0;
+    for (let i = 0; i < buffer.length; i++) sum += buffer[i] * buffer[i];
+    const rms = Math.sqrt(sum / buffer.length);
+    const dbFS = rms > 1e-1 ? 20 * Math.log10(rms) : -100;
+    const sensOffset = (SENSITIVITY_CONFIG[state.sensitivity].offsetMult - 1) * 10;
+    const db = Math.max(0, Math.round(dbFS + 80 + state.dbOffset + sensOffset));
+
+    if (state.debugMode && db !== current) {
+      console.info("dB: ", db);
+      current = db;
     }
-  }, 8000);
+
+    updateDbUI(db);
+    //_checkTriggersDebounced(db);
+
+    // Atualiza display calibração se aberta
+    const calDisplay = document.getElementById('cal-db-live');
+    if (calDisplay && document.getElementById('screen-calibration').classList.contains('active')) calDisplay.textContent = db;
+  };
+
+  tick();
 }
-function updateBatteryUI() {
-  var pct = Math.round(state.battery);
-  _setText('battery-pct', pct + '%');
-  var fill = document.getElementById('bat-fill-bar');
-  if (fill) fill.style.width = pct + '%';
-  var block = document.getElementById('battery-block');
-  if (block) block.style.color = pct <= 20 ? 'var(--danger)' : pct <= 40 ? 'var(--warn)' : '';
+
+function _startStatsInterval() {
+  return;
 }
-function _checkBatNotify() {
-  var t = state.batNotifyThreshold;
-  if (t > 0 && state.battery <= t && state.battery > t - 0.4)
-    showToast('Bateria baixa: ' + Math.round(state.battery) + '%', 'warn');
+
+function updateDbUI(db) {
+  _setText('monitor-db', db);
+
+  // Barra de nível (0-100)
+  const pct = Math.min(100, db);
+  document.getElementById('monitor-bar-fill').style.width = pct + '%';
+
+  // Alerta visual
+  const ring = document.getElementById('monitor-ring');
+  if (db >= state.noiseNotifyThreshold) {
+    ring.classList.add('alert');
+    if (!ring.dataset.alerted) {
+      ring.dataset.alert = '1';
+      //sendNotification('Ruido elevado: ' + db+ ' dB');
+    }
+  } else {
+    ring.classList.remove('alert');
+    delete ring.dataset.alerted;
+  }
+
+  // Stats sessão
+  state.sessionDbValues.push(db);
+  if (state.sessionDbValues.length > 500) state.sessionDbValues.shift();
+  if (state.sessionMaxDb === null || db > state.sessionMaxDb) {
+    state.sessionMaxDb = db;
+    //_setText('stat-max', db);
+  } else if (state.sessionMinDb === null || db < state.sessionMinDb) state.sessionMinDb = db;
+  const avg = Math.round(state.sessionDbValues.reduce((a,b) => a+b, 0) / state.sessionDbValues.length);
+  //_setText('stat-avg', avg);
+
+  // Salva em histórico global
+  if (state.dbStat.max === null || db > state.dbStat.max) state.dbStat.max = db;
+  else if (state.dbStat.min === null || db < state.dbStat.min) state.dbStat.min = db;
+  //_captureSessionWindowSample(db);
 }
+
 
 /* ----------------------------------------------------------------
    Tela add áudio
@@ -481,13 +479,13 @@ async function getFileSize(url) {
 
   const sizeKB = (blob.size / 1024).toFixed(2)
   
-  if (parseFloat(sizeKB) < 1) return `${sizeKB} KB`;
+  if (parseFloat(sizeKB) < 1000) return `${sizeKB} KB`;
 
   const sizeMB = (blob.size / (1024 * 1024)).toFixed(2);
   return `${sizeMB} MB`;
 }
 
-function addDefaultAudio(catalogId) {
+async function addDefaultAudio(catalogId) {
   var d = DEFAULT_AUDIOS_CATALOG.find(function (x) { return x.id === catalogId; });
   if (!d) return;
   // Se já existe

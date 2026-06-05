@@ -4,6 +4,20 @@ Este documento registra as alterações realizadas no projeto ao longo do desenv
 
 ---
 
+## 2026-06-05 02:00
+
+### Alterações Gerais
+
+**Adicionado**
+
+* Adicionado funções adicionais para futura re-imprementação do microfone
+
+**Modificado**
+
+* Estilização da tela de configurações finalizada
+
+<br>
+
 ## 2026-06-04 23:20
 
 ### Alterações Gerais

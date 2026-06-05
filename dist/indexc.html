@@ -630,16 +630,6 @@
   </div>
 </div>
 
-<!-- Modal: Seleção de áudio emergência -->
-<div class="modal-overlay" id="modal-select-emergency" onclick="closeModal('modal-select-emergency')">
-  <div class="modal-sheet" onclick="event.stopPropagation()">
-    <div class="modal-handle"></div>
-    <div class="modal-title">Som de emergência</div>
-    <div id="emergency-audio-options"></div>
-    <button class="modal-btn modal-btn-ghost" onclick="closeModal('modal-select-emergency')">Cancelar</button>
-  </div>
-</div>
-
 <!-- Toast -->
 <div id="toast" role="status" aria-live="polite"></div>
 
@@ -652,10 +642,9 @@
     <h2 class="permission-title">Acesso ao microfone</h2>
     <p class="permission-desc">O EarGuard precisa do microfone para monitorar o ruído ambiente e proteger sua audição. Seus áudios nunca são gravados ou enviados.</p>
     <button class="add-btn-primary" onclick="requestMicPermission()">Permitir acesso</button>
-    <button class="modal-btn modal-btn-ghost" onclick="dismissPermission()">Agora não</button>
+    <button class="modal-btn modal-btn-ghost" onclick="dismissPermission()">Negar acesso</button>
   </div>
 </div>
-
 <script src="static/js/scriptc.js"></script>
 </body>
 </html>
