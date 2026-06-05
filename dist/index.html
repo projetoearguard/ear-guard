@@ -14,433 +14,445 @@
 
 <body data-theme="dark">
 
-  <!-- ===================== TELA HOME ===================== -->
-  <div class="screen" id="screen-home">
-    <div class="screen-body home-body">
+<!-- ===================== TELA HOME ===================== -->
+<div class="screen" id="screen-home">
+  <div class="screen-body home-body">
 
-      <div class="home-header">
-        <div class="app-wordmark">
-          EarGuard <a href="indexc.html">Access Test</a>
-        </div>
-      </div>
-
-      <!-- Monitor central -->
-      <div class="monitor-wrap">
-        <div class="monitor-ring" id="monitor-ring">
-          <div class="monitor-rings-bg">
-            <div class="ring r1"></div>
-            <div class="ring r2"></div>
-            <div class="ring r3"></div>
-          </div>
-          <div class="monitor-center">
-            <div class="monitor-icon" id="monitor-icon">
-              <svg width="36" height="36" viewBox="0 0 24 24" fill="none">
-                <path d="M12 2a3 3 0 0 1 3 3v6a3 3 0 0 1-6 0V5a3 3 0 0 1 3-3z" stroke="currentColor" stroke-width="1.8"
-                  stroke-linecap="round" />
-                <path d="M19 10v1a7 7 0 0 1-14 0v-1M12 19v3M8 22h8" stroke="currentColor" stroke-width="1.8"
-                  stroke-linecap="round" stroke-linejoin="round" />
-              </svg>
-            </div>
-            <div class="monitor-db" id="monitor-db">--</div>
-            <div class="monitor-unit">dB estimado</div>
-          </div>
-        </div>
-        <div class="monitor-bar-wrap">
-          <div class="monitor-bar" id="monitor-bar">
-            <div class="monitor-bar-fill" id="monitor-bar-fill"></div>
-            <div class="monitor-bar-label low">Baixo</div>
-            <div class="monitor-bar-label mid">Médio</div>
-            <div class="monitor-bar-label high">Alto</div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Controles de monitoramento -->
-      <div class="monitor-controls">
-        <button class="ctrl-btn ctrl-secondary" id="btn-stop-monitor" onclick="stopMonitoring()" style="display:none"
-          aria-label="Pausar monitoramento">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
-            <rect x="6" y="4" width="4" height="16" rx="1" />
-            <rect x="14" y="4" width="4" height="16" rx="1" />
-          </svg>
-          Pausar
-        </button>
-        <button class="ctrl-btn ctrl-primary" id="btn-start-monitor" onclick="startMonitoring()"
-          aria-label="Iniciar monitoramento">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M12 2a3 3 0 0 1 3 3v6a3 3 0 0 1-6 0V5a3 3 0 0 1 3-3z" />
-            <path d="M19 10v1a7 7 0 0 1-14 0v-1" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-              fill="none" />
-          </svg>
-          Iniciar Monitoramento
-        </button>
-        <button class="ctrl-btn ctrl-secondary" id="btn-reset-monitor" onclick="resetMonitoring()" style="display:none"
-          aria-label="Reiniciar monitoramento">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-            <path d="M1 4v6h6M23 20v-6h-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
-            <path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4-4.64 4.36A9 9 0 0 1 3.51 15" stroke="currentColor"
-              stroke-width="2" stroke-linecap="round" />
-          </svg>
-        </button>
-      </div>
-
-      <!-- Sensibilidade -->
-      <div class="sensitivity-row" id="sensitivity-row" style="display:none">
-        <span class="sensitivity-label">Sensibilidade:</span>
-        <div class="sensitivity-btns">
-          <button class="sens-btn" data-val="low" onclick="setSensitivity('low')">Baixa</button>
-          <button class="sens-btn active" data-val="mid" onclick="setSensitivity('mid')">Média</button>
-          <button class="sens-btn" data-val="high" onclick="setSensitivity('high')">Alta</button>
-        </div>
-      </div>
-
-      <!-- Now playing -->
-      <div class="now-playing-card" id="now-playing-card">
-        <div class="np-thumb" id="np-thumb">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-            <path
-              d="M9 18V6l12-3v12M9 18c0 1.1-.9 2-2 2s-2-.9-2-2 .9-2 2-2 2 .9 2 2zm12-3c0 1.1-.9 2-2 2s-2-.9-2-2 .9-2 2-2 2 .9 2 2z"
-              stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
-          </svg>
-        </div>
-        <div class="np-info">
-          <span class="np-title" id="np-title">Nenhum áudio ativo</span>
-          <span class="np-meta" id="np-meta">Aguardando gatilho...</span>
-          <div class="np-progress-bar">
-            <div class="np-progress-fill" id="np-progress"></div>
-          </div>
-        </div>
-        <div class="np-controls">
-          <button class="np-btn" id="btn-play-pause" onclick="togglePlayPause()" aria-label="Play/Pausa">
-            <svg id="icon-playpause" width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M8 5v14l11-7z" />
-            </svg>
-          </button>
-          <button class="np-btn" onclick="stopAudioManual()" aria-label="Parar">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
-              <rect x="4" y="4" width="16" height="16" rx="2" />
-            </svg>
-          </button>
-        </div>
+    <div class="home-header">
+      <div class="app-wordmark">
+        EarGuard <a href="indexc.html">Access Test</a>
       </div>
     </div>
-  </div>
 
-  <!-- ===================== TELA ÁUDIOS ===================== -->
-  <div class="screen" id="screen-audios">
-    <div class="screen-body">
-      <div class="screen-header">
-        <h1 class="screen-title">Biblioteca</h1>
-        <button class="icon-btn" onclick="showScreen('add-audio')" aria-label="Adicionar áudio">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-            <path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
-          </svg>
-        </button>
-      </div>
-      <div class="list-body" id="audio-list-container"></div>
-    </div>
-  </div>
-
-  <!-- ===================== Tela adicionar áudio ===================== -->
-  <div class="screen" id="screen-add-audio">
-    <div class="screen-body add-body">
-
-      <!-- Header com botão voltar -->
-      <div class="add-header">
-        <button class="back-btn" onclick="showScreen('audios')">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
-            <path d="M19 12H5M12 19l-7-7 7-7" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"
-              stroke-linejoin="round" />
-          </svg>
-        </button>
-        <span class="add-header-title">Adicionar Áudio</span>
-      </div>
-
-      <!-- Abas: Arquivo / Padrões -->
-      <div class="add-tabs">
-        <button class="add-tab active" id="tab-file" onclick="switchAddTab('file')">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" stroke="currentColor" stroke-width="2"
-              stroke-linecap="round" stroke-linejoin="round" />
-            <polyline points="14 2 14 8 20 8" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-              stroke-linejoin="round" />
-          </svg>
-          Do dispositivo
-        </button>
-        <button class="add-tab" id="tab-default" onclick="switchAddTab('default')">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-            <path
-              d="M9 19V6l12-3v13M9 19c0 1.1-.9 2-2 2s-2-.9-2-2 .9-2 2-2 2 .9 2 2zm12-3c0 1.1-.9 2-2 2s-2-.9-2-2 .9-2 2-2 2 .9 2 2z"
-              stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
-          </svg>
-          Sons integrados
-        </button>
-      </div>
-
-      <!-- Painel: Do dispositivo -->
-      <div class="add-panel active" id="panel-file">
-        <div class="add-field">
-          <label class="add-label">Nome</label>
-          <input type="text" class="add-input" id="new-audio-name" placeholder="Ex: Chuva Suave">
+    <!-- Monitor central -->
+    <div class="monitor-wrap">
+      <div class="monitor-ring" id="monitor-ring">
+        <div class="monitor-rings-bg">
+          <div class="ring r1"></div>
+          <div class="ring r2"></div>
+          <div class="ring r3"></div>
         </div>
-        <div class="add-field">
-          <label class="add-label">Arquivo (MP3, WAV, WMA, OGG, AAC)</label>
-          <label class="file-pick-label" id="file-pick-label">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" stroke="currentColor" stroke-width="2"
+        <div class="monitor-center">
+          <div class="monitor-icon" id="monitor-icon">
+            <svg width="36" height="36" viewBox="0 0 24 24" fill="none">
+              <path d="M12 2a3 3 0 0 1 3 3v6a3 3 0 0 1-6 0V5a3 3 0 0 1 3-3z" stroke="currentColor" stroke-width="1.8"
+                stroke-linecap="round" />
+              <path d="M19 10v1a7 7 0 0 1-14 0v-1M12 19v3M8 22h8" stroke="currentColor" stroke-width="1.8"
                 stroke-linecap="round" stroke-linejoin="round" />
-              <polyline points="17 8 12 3 7 8" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                stroke-linejoin="round" />
-              <line x1="12" y1="3" x2="12" y2="15" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
             </svg>
-            <span id="file-pick-text">Selecionar arquivo</span>
-            <input type="file" id="new-audio-file" accept=".mp3,.wav,.wma,.acc,.ogg" onchange="onFileSelected(this)"
-              style="display:none">
-          </label>
-        </div>
-        <div class="add-field">
-          <label class="add-label">Faixa de Decibéis (opcional)</label>
-          <div class="db-range-row">
-            <input type="number" class="add-input db-input" id="new-db-min" placeholder="Min" min="0" max="240">
-            <span class="range-dash">&mdash;</span>
-            <input type="number" class="add-input db-input" id="new-db-max" placeholder="Max" min="0" max="240">
-            <span class="db-unit">dB</span>
           </div>
+          <div class="monitor-db" id="monitor-db">--</div>
+          <div class="monitor-unit">dB estimado</div>
         </div>
-        <button class="add-btn-primary" onclick="addAudio()">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-            <path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" />
+      </div>
+      <div class="monitor-bar-wrap">
+        <div class="monitor-bar" id="monitor-bar">
+          <div class="monitor-bar-fill" id="monitor-bar-fill"></div>
+          <div class="monitor-bar-label low">Baixo</div>
+          <div class="monitor-bar-label mid">Médio</div>
+          <div class="monitor-bar-label high">Alto</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Controles de monitoramento -->
+    <div class="monitor-controls">
+      <button class="ctrl-btn ctrl-secondary" id="btn-stop-monitor" onclick="stopMonitoring()" style="display:none"
+        aria-label="Pausar monitoramento">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+          <rect x="6" y="4" width="4" height="16" rx="1" />
+          <rect x="14" y="4" width="4" height="16" rx="1" />
+        </svg>
+        Pausar
+      </button>
+      <button class="ctrl-btn ctrl-primary" id="btn-start-monitor" onclick="startMonitoring()"
+        aria-label="Iniciar monitoramento">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M12 2a3 3 0 0 1 3 3v6a3 3 0 0 1-6 0V5a3 3 0 0 1 3-3z" />
+          <path d="M19 10v1a7 7 0 0 1-14 0v-1" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+            fill="none" />
+        </svg>
+        Iniciar Monitoramento
+      </button>
+      <button class="ctrl-btn ctrl-secondary" id="btn-reset-monitor" onclick="resetMonitoring()" style="display:none"
+        aria-label="Reiniciar monitoramento">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+          <path d="M1 4v6h6M23 20v-6h-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+          <path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4-4.64 4.36A9 9 0 0 1 3.51 15" stroke="currentColor"
+            stroke-width="2" stroke-linecap="round" />
+        </svg>
+      </button>
+    </div>
+
+    <!-- Sensibilidade -->
+    <div class="sensitivity-row" id="sensitivity-row" style="display:none">
+      <span class="sensitivity-label">Sensibilidade:</span>
+      <div class="sensitivity-btns">
+        <button class="sens-btn" data-val="low" onclick="setSensitivity('low')">Baixa</button>
+        <button class="sens-btn active" data-val="mid" onclick="setSensitivity('mid')">Média</button>
+        <button class="sens-btn" data-val="high" onclick="setSensitivity('high')">Alta</button>
+      </div>
+    </div>
+
+    <!-- Now playing -->
+    <div class="now-playing-card" id="now-playing-card">
+      <div class="np-thumb" id="np-thumb">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+          <path
+            d="M9 18V6l12-3v12M9 18c0 1.1-.9 2-2 2s-2-.9-2-2 .9-2 2-2 2 .9 2 2zm12-3c0 1.1-.9 2-2 2s-2-.9-2-2 .9-2 2-2 2 .9 2 2z"
+            stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
+        </svg>
+      </div>
+      <div class="np-info">
+        <span class="np-title" id="np-title">Nenhum áudio ativo</span>
+        <span class="np-meta" id="np-meta">Aguardando gatilho...</span>
+        <div class="np-progress-bar">
+          <div class="np-progress-fill" id="np-progress"></div>
+        </div>
+      </div>
+      <div class="np-controls">
+        <button class="np-btn" id="btn-play-pause" onclick="togglePlayPause()" aria-label="Play/Pausa">
+          <svg id="icon-playpause" width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M8 5v14l11-7z" />
           </svg>
-          Adicionar
+        </button>
+        <button class="np-btn" onclick="stopAudioManual()" aria-label="Parar">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+            <rect x="4" y="4" width="16" height="16" rx="2" />
+          </svg>
         </button>
       </div>
-
-      <!-- Painel: Sons integrados -->
-      <div class="add-panel" id="panel-default">
-        <p class="add-hint">Selecione os sons que deseja adicionar a sua lista. Sons já adicionados ficam marcados.</p>
-        <div id="default-audio-grid"></div>
-      </div>
-
     </div>
   </div>
+</div>
 
-  <!-- ===================== Tela configurações ===================== -->
-  <div class="screen active" id="screen-configurations">
-    <div class="screen-body">
-      <div class="screen-header">
-        <h1 class="screen-title">Configurações</h1>
-      </div>
-      <div class="list-body config-body">
-
-        <div class="config-section">
-          <div class="config-section-title">Aparência</div>
-          <div class="config-row">
-            <div class="config-row-info">
-              <span class="config-row-label">Tema</span>
-            </div>
-            <select class="config-select" id="theme-select" onchange="setTheme(this.value)">
-              <option value="dark">Escuro</option>
-              <option value="light">Claro</option>
-              <option value="system">Sistema</option>
-            </select>
-          </div>
-        </div>
-
-        <div class="config-section">
-          <div class="config-section-title">Monitoramento</div>
-          <div class="config-row">
-            <div class="config-row-info">
-              <span class="config-row-label">Tempo entre trocas</span>
-              <span class="config-row-hint">Segundos entre mudanças de áudio</span>
-            </div>
-            <div class="config-input-inline">
-              <input type="number" class="config-input" id="cooldown-input" min="0" max="60" value="3">
-              <span class="unit-label">s</span>
-            </div>
-          </div>
-          <div class="config-row">
-            <div class="config-row-info">
-              <span class="config-row-label">Atraso</span>
-              <span class="config-row-hint">Atraso antes de confirmar nível (ms)</span>
-            </div>
-            <div class="config-input-inline">
-              <input type="number" class="config-input" id="debounce-input" min="100" max="5000" value="800">
-              <span class="unit-label">ms</span>
-            </div>
-          </div>
-          <div class="config-row">
-            <div class="confid-row-info">
-              <span class="config-row-label">Desvio de calibração</span>
-              <span class="config-row-hint">Ajuste manual do valor final de decibéis</span>
-            </div>
-            <div class="config-input-inline">
-              <input type="number" class="config-input" id="offset-input" min="-100" max="100" value="0">
-              <span class="unit-label">dB</span>
-            </div>
-          </div>
-          <button class="config-save-btn" onclick="saveMonitorConfig()">Salvar cofigurações</button>
-          <button class="config-calibrate-btn" onclick="startCalibrationFlow()">Ajuste guiado por áudio &rarr;</button>
-        </div>
-
-        <div class="config-section">
-          <div class="config-section-title">Perfis</div>
-          <div id="profiles-manager"></div>
-          <div class="profile-asset-footer">
-            <button class="config-save-btn" onclick="openProfileEditor()">Criar novo perfil</button>
-          </div>
-        </div>
-
-        <div class="config-section">
-          <div class="config-section-title">Notificações</div>
-          <div class="config-row">
-            <div class="config-row-info">
-              <span class="config-row-label">Notificar ruído elevado</span>
-              <span class="config-row-hint">Acima de quantos dB?</span>
-            </div>
-            <div class="config-input-inline">
-              <input type="number" class="config-input" id="noise-notify-threshold" min="0" max="200" value="80">
-              <span class="unit-label">dB</span>
-            </div>
-          </div>
-          <div class="config-row">
-            <div class="config-row-info">
-              <span class="config-row-label">Notificar ao ativar gatilho</span>
-            </div>
-            <label class="toggle" aria-label="Notificar gatilho">
-              <input type="checkbox" id="notify-trigger-toggle" checked>
-              <span class="toggle-track"></span>
-            </label>
-          </div>
-          <div class="config-row">
-            <div class="config-row-info">
-              <span class="config-row-label">Ouvir referência</span>
-              <span class="config-row-hint">Use um áudio de exemplo antes de escolher o limite</span>
-            </div>
-            <div class="config-input=inline">
-              <select class="config-select" id="notify-preview-audio"></select>
-              <button class="config-select-btn" onclick="playNotifyPreview()">Ouvir</span>
-            </div>
-          </div>
-          <button class="config-save-btn" onclick="saveNotifyConfig()">Salvar</button>
-        </div>
-
-        <div class="config-footer">
-          <p>Todos os direitos reservados.</p>
-          <p>Versão do software: <span id="footer-sv">&mdash;</span></p>
-          <p>Contato: <a class="footer-email" href="mailto:contato@earguard.app">contato@earguard.app</a></p>
-        </div>
-      </div>
+<!-- ===================== TELA ÁUDIOS ===================== -->
+<div class="screen" id="screen-audios">
+  <div class="screen-body">
+    <div class="screen-header">
+      <h1 class="screen-title">Biblioteca</h1>
+      <button class="icon-btn" onclick="showScreen('add-audio')" aria-label="Adicionar áudio">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+          <path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+        </svg>
+      </button>
     </div>
+    <div class="list-body" id="audio-list-container"></div>
   </div>
+</div>
 
-  <!-- ===================== Bottom nav ===================== -->
-  <nav class="bottom-nav" id="bottom-nav">
-    <div class="nav-item active" id="nav-home" onclick="showScreen('home')" role="tab" aria-label="Home">
-      <svg class="nav-icon" width="22" height="22" viewBox="0 0 24 24" fill="none">
-        <path d="M3 12L12 3l9 9M5 10v9a1 1 0 0 0 1 1h4v-5h4v5h4a1 1 0 0 0 1-1v-9" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
-      </svg>
-      <span class="nav-label">Home</span>
-    </div>
-    <div class="nav-item" id="nav-audios" onclick="showScreen('audios')" role="tab" aria-label="Músicas">
-      <svg class="nav-icon" width="22" height="22" viewBox="0 0 24 24" fill="none">
-        <path d="M9 18V6l12-3v12M9 18c0 1.1-.9 2-2 2s-2-.9-2-2 .9-2 2-2 2 .9 2 2zm12-3c0 1.1-.9 2-2 2s-2-.9-2-2 .9-2 2-2 2 .9 2 2z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
-      </svg>
-      <span class="nav-label">Músicas</span>
-    </div>
-    <div class="nav-item" id="nav-triggers" onclick="showScreen('triggers')" role="tab" aria-label="Gatilhos">
-      <svg class="nav-icon" width="22", height="22" viewBox="0 0 24 24" fill="none">
-        <path d="M4 21V14M4 10V3M12 21V12M12 8V3M20 21V16M20 12V3M1 14h6M9 8h6M17 16h6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
-      </svg>
-      <span class="nav-label">Gatilhos</span>
-    </div>
-    <div class="nav-item" id="nav-history" onclick="showScreen('history')" role="tab" aria-label="Histórico">
-      <svg class="nav-icon" width="22" height="22" viewBox="0 0 24 24" fill="none">
-        <path d="M12 8v4l3 3m6-3a9 9 0 1 1-18 0 9 9 0 0 1 18 0z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
-      </svg>
-      <span class="nav-label">Histórico</span>
-    </div>
-    <div class="nav-item" id="nav-configurations" onclick="showScreen('configurations')" role="tab" aria-label="Configurações">
-      <svg class="nav-icon" width="22" height="22" viewBox="0 0 24 24" fill="none">
-        <path
-          d="M19.14 12.94c.04-.3.06-.61.06-.94s-.02-.64-.07-.94l2.03-1.58a.49.49 0 0 0 .12-.61l-1.92-3.32a.49.49 0 0 0-.59-.22l-2.39.96c-.5-.38-1.05-.7-1.62-.94l-.36-2.54a.484.484 0 0 0-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.57.24-1.1.56-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.07.62-.07.94s.02.64.07.94l-2.03 1.58a.47.47 0 0 0-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.05.7 1.62.94l.36 2.54c.05.24.27.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.57-.24 1.1-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32a.47.47 0 0 0-.12-.61l-2.01-1.58zM12 15.6a3.6 3.6 0 1 1 0-7.2 3.6 3.6 0 0 1 0 7.2z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
-      </svg>
-      <span class="nav-label">Config.</span>
-    </div>
-  </nav>
+<!-- ===================== Tela adicionar áudio ===================== -->
+<div class="screen" id="screen-add-audio">
+  <div class="screen-body add-body">
 
-  <!-- ===================== Modais ===================== -->
-
-  <!-- Opções do áudio -->
-  <div class="modal-overlay" id="modal-audio-options" onclick="closeModal('modal-audio-options')">
-    <div class="modal-sheet" onclick="event.stopPropagation()">
-      <div class="modal-handle"></div>
-      <div class="modal-title" id="modal-options-title">Opções</div>
-      <button class="modal-btn-secondary" onclick="openRenameModal()">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" style="flex-shrink:0">
-          <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" stroke="currentColor" stroke-width="2"
-            stroke-linecap="round" stroke-linejoin="round" />
-          <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" stroke="currentColor" stroke-width="2"
-            stroke-linecap="round" stroke-linejoin="round" />
-        </svg>
-        Renomear
-      </button>
-      <button class="modal-btn-secondary" onclick="openEditDbModal()">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" style="flex-shrink:0">
-          <path d="M4 21V14M4 10V3M12 21V12M12 8V3M20 21V16M20 12V3" stroke="currentColor" stroke-width="2"
-            stroke-linecap="round" />
-          <path d="M1 14h6M9 8h6M17 16h6" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
-        </svg>
-        Ajustar faixa de dB
-      </button>
-      <button class="modal-btn-danger" onclick="removeAudio()">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" style="flex-shrink:0">
-          <polyline points="3 6 5 6 21 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
-          <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6M10 11v6M14 11v6" stroke="currentColor" stroke-width="2"
-            stroke-linecap="round" stroke-linejoin="round" />
-          <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+    <!-- Header com botão voltar -->
+    <div class="add-header">
+      <button class="back-btn" onclick="showScreen('audios')">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+          <path d="M19 12H5M12 19l-7-7 7-7" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"
             stroke-linejoin="round" />
         </svg>
-        Remover da lista
       </button>
-      <button class="modal-btn-ghost" onclick="closeModal('modal-audio-options')">Cancelar</button>
+      <span class="add-header-title">Adicionar Áudio</span>
     </div>
-  </div>
 
-  <div class="modal-overlay" id="modal-rename" onclick="closeModal('modal-rename')">
-    <div class="modal-sheet" onclick="event.stopPropagation()">
-      <div class="modal-handle"></div>
-      <div class="modal-title">Renomear</div>
+    <!-- Abas: Arquivo / Padrões -->
+    <div class="add-tabs">
+      <button class="add-tab active" id="tab-file" onclick="switchAddTab('file')">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round" />
+          <polyline points="14 2 14 8 20 8" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+            stroke-linejoin="round" />
+        </svg>
+        Do dispositivo
+      </button>
+      <button class="add-tab" id="tab-default" onclick="switchAddTab('default')">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+          <path
+            d="M9 19V6l12-3v13M9 19c0 1.1-.9 2-2 2s-2-.9-2-2 .9-2 2-2 2 .9 2 2zm12-3c0 1.1-.9 2-2 2s-2-.9-2-2 .9-2 2-2 2 .9 2 2z"
+            stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
+        </svg>
+        Sons integrados
+      </button>
+    </div>
+
+    <!-- Painel: Do dispositivo -->
+    <div class="add-panel active" id="panel-file">
       <div class="add-field">
-        <label class="add-label">Novo nome</label>
-        <input type="text" class="add-input" id="rename-input" placeholder="Nome do áudio">
+        <label class="add-label">Nome</label>
+        <input type="text" class="add-input" id="new-audio-name" placeholder="Ex: Chuva Suave">
       </div>
-      <button class="modal-btn-primary" onclick="confirmRename()">Salvar</button>
-      <button class="modal-btn-ghost" onclick="closeModal('modal-rename')">Cancelar</button>
-    </div>
-  </div>
-
-  <div class="modal-overlay" id="modal-edit-db" onclick="closeModal('modal-edit-db')">
-    <div class="modal-sheet" onclick="event.stopPropagation()">
-      <div class="modal-handle"></div>
-      <div class="modal-title">Ajustar Faixa de dB</div>
       <div class="add-field">
-        <label class="add-label">Faixa de Decibéis</label>
+        <label class="add-label">Arquivo (MP3, WAV, WMA, OGG, AAC)</label>
+        <label class="file-pick-label" id="file-pick-label">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round" />
+            <polyline points="17 8 12 3 7 8" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+              stroke-linejoin="round" />
+            <line x1="12" y1="3" x2="12" y2="15" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+          </svg>
+          <span id="file-pick-text">Selecionar arquivo</span>
+          <input type="file" id="new-audio-file" accept=".mp3,.wav,.wma,.acc,.ogg" onchange="onFileSelected(this)"
+            style="display:none">
+        </label>
+      </div>
+      <div class="add-field">
+        <label class="add-label">Faixa de Decibéis (opcional)</label>
         <div class="db-range-row">
-          <input type="number" class="add-input db-input" id="edit-db-min" placeholder="0" min="0" max="240">
+          <input type="number" class="add-input db-input" id="new-db-min" placeholder="Min" min="0" max="240">
           <span class="range-dash">&mdash;</span>
-          <input type="number" class="add-input db-input" id="edit-db-max" placeholder="60" min="0" max="240">
+          <input type="number" class="add-input db-input" id="new-db-max" placeholder="Max" min="0" max="240">
           <span class="db-unit">dB</span>
         </div>
       </div>
-      <button class="modal-btn-primary" onclick="confirmEditDb()">Salvar</button>
-      <button class="modal-btn-ghost" onclick="closeModal('modal-edit-db')">Cancelar</button>
+      <button class="add-btn-primary" onclick="addAudio()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+          <path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" />
+        </svg>
+        Adicionar
+      </button>
+    </div>
+
+    <!-- Painel: Sons integrados -->
+    <div class="add-panel" id="panel-default">
+      <p class="add-hint">Selecione os sons que deseja adicionar a sua lista. Sons já adicionados ficam marcados.</p>
+      <div id="default-audio-grid"></div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ===================== Tela configurações ===================== -->
+<div class="screen active" id="screen-configurations">
+  <div class="screen-body">
+    <div class="screen-header">
+      <h1 class="screen-title">Configurações</h1>
+    </div>
+    <div class="list-body config-body">
+
+      <div class="config-section">
+        <div class="config-section-title">Aparência</div>
+        <div class="config-row">
+          <div class="config-row-info">
+            <span class="config-row-label">Tema</span>
+          </div>
+          <select class="config-select" id="theme-select" onchange="setTheme(this.value)">
+            <option value="dark">Escuro</option>
+            <option value="light">Claro</option>
+            <option value="system">Sistema</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="config-section">
+        <div class="config-section-title">Monitoramento</div>
+        <div class="config-row">
+          <div class="config-row-info">
+            <span class="config-row-label">Tempo entre trocas</span>
+            <span class="config-row-hint">Segundos entre mudanças de áudio</span>
+          </div>
+          <div class="config-input-inline">
+            <input type="number" class="config-input" id="cooldown-input" min="0" max="60" value="3">
+            <span class="unit-label">s</span>
+          </div>
+        </div>
+        <div class="config-row">
+          <div class="config-row-info">
+            <span class="config-row-label">Atraso</span>
+            <span class="config-row-hint">Atraso antes de confirmar nível (ms)</span>
+          </div>
+          <div class="config-input-inline">
+            <input type="number" class="config-input" id="debounce-input" min="100" max="5000" value="800">
+            <span class="unit-label">ms</span>
+          </div>
+        </div>
+        <div class="config-row">
+          <div class="confid-row-info">
+            <span class="config-row-label">Desvio de calibração</span>
+            <span class="config-row-hint">Ajuste manual do valor final de decibéis</span>
+          </div>
+          <div class="config-input-inline">
+            <input type="number" class="config-input" id="offset-input" min="-100" max="100" value="0">
+            <span class="unit-label">dB</span>
+          </div>
+        </div>
+        <button class="config-save-btn" onclick="saveMonitorConfig()">Salvar cofigurações</button>
+        <button class="config-calibrate-btn" onclick="startCalibrationFlow()">Ajuste guiado por áudio &rarr;</button>
+      </div>
+
+      <div class="config-section">
+        <div class="config-section-title">Perfis</div>
+        <div id="profiles-manager"></div>
+        <div class="profile-asset-footer">
+          <button class="config-save-btn" onclick="openProfileEditor()">Criar novo perfil</button>
+        </div>
+      </div>
+
+      <div class="config-section">
+        <div class="config-section-title">Notificações</div>
+        <div class="config-row">
+          <div class="config-row-info">
+            <span class="config-row-label">Notificar ruído elevado</span>
+            <span class="config-row-hint">Acima de quantos dB?</span>
+          </div>
+          <div class="config-input-inline">
+            <input type="number" class="config-input" id="noise-notify-threshold" min="0" max="200" value="80">
+            <span class="unit-label">dB</span>
+          </div>
+        </div>
+        <div class="config-row">
+          <div class="config-row-info">
+            <span class="config-row-label">Notificar ao ativar gatilho</span>
+          </div>
+          <label class="toggle" aria-label="Notificar gatilho">
+            <input type="checkbox" id="notify-trigger-toggle" checked>
+            <span class="toggle-track"></span>
+          </label>
+        </div>
+        <div class="config-row">
+          <div class="config-row-info">
+            <span class="config-row-label">Ouvir referência</span>
+            <span class="config-row-hint">Use um áudio de exemplo antes de escolher o limite</span>
+          </div>
+          <div class="config-input=inline">
+            <select class="config-select" id="notify-preview-audio"></select>
+            <button class="config-select-btn" onclick="playNotifyPreview()">Ouvir</span>
+          </div>
+        </div>
+        <button class="config-save-btn" onclick="saveNotifyConfig()">Salvar</button>
+      </div>
+
+      <div class="config-footer">
+        <p>Todos os direitos reservados.</p>
+        <p>Versão do software: <span id="footer-sv">&mdash;</span></p>
+        <p>Contato: <a class="footer-email" href="mailto:contato@earguard.app">contato@earguard.app</a></p>
+      </div>
     </div>
   </div>
+</div>
 
-  <div id="toast"></div>
-  <!--<script type="module" src="static/js/capBridge.js"></script>
-<script type="module" src="static/js/script.js"></script>-->
-  <script src="static/js/script.js"></script>
+<!-- ===================== Bottom nav ===================== -->
+<nav class="bottom-nav" id="bottom-nav">
+  <div class="nav-item active" id="nav-home" onclick="showScreen('home')" role="tab" aria-label="Home">
+    <svg class="nav-icon" width="22" height="22" viewBox="0 0 24 24" fill="none">
+      <path d="M3 12L12 3l9 9M5 10v9a1 1 0 0 0 1 1h4v-5h4v5h4a1 1 0 0 0 1-1v-9" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
+    </svg>
+    <span class="nav-label">Home</span>
+  </div>
+  <div class="nav-item" id="nav-audios" onclick="showScreen('audios')" role="tab" aria-label="Músicas">
+    <svg class="nav-icon" width="22" height="22" viewBox="0 0 24 24" fill="none">
+      <path d="M9 18V6l12-3v12M9 18c0 1.1-.9 2-2 2s-2-.9-2-2 .9-2 2-2 2 .9 2 2zm12-3c0 1.1-.9 2-2 2s-2-.9-2-2 .9-2 2-2 2 .9 2 2z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
+    </svg>
+    <span class="nav-label">Músicas</span>
+  </div>
+  <div class="nav-item" id="nav-triggers" onclick="showScreen('triggers')" role="tab" aria-label="Gatilhos">
+    <svg class="nav-icon" width="22", height="22" viewBox="0 0 24 24" fill="none">
+      <path d="M4 21V14M4 10V3M12 21V12M12 8V3M20 21V16M20 12V3M1 14h6M9 8h6M17 16h6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
+    </svg>
+    <span class="nav-label">Gatilhos</span>
+  </div>
+  <div class="nav-item" id="nav-history" onclick="showScreen('history')" role="tab" aria-label="Histórico">
+    <svg class="nav-icon" width="22" height="22" viewBox="0 0 24 24" fill="none">
+      <path d="M12 8v4l3 3m6-3a9 9 0 1 1-18 0 9 9 0 0 1 18 0z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
+    </svg>
+    <span class="nav-label">Histórico</span>
+  </div>
+  <div class="nav-item" id="nav-configurations" onclick="showScreen('configurations')" role="tab" aria-label="Configurações">
+    <svg class="nav-icon" width="22" height="22" viewBox="0 0 24 24" fill="none">
+      <path
+        d="M19.14 12.94c.04-.3.06-.61.06-.94s-.02-.64-.07-.94l2.03-1.58a.49.49 0 0 0 .12-.61l-1.92-3.32a.49.49 0 0 0-.59-.22l-2.39.96c-.5-.38-1.05-.7-1.62-.94l-.36-2.54a.484.484 0 0 0-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.57.24-1.1.56-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.07.62-.07.94s.02.64.07.94l-2.03 1.58a.47.47 0 0 0-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.05.7 1.62.94l.36 2.54c.05.24.27.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.57-.24 1.1-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32a.47.47 0 0 0-.12-.61l-2.01-1.58zM12 15.6a3.6 3.6 0 1 1 0-7.2 3.6 3.6 0 0 1 0 7.2z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
+    </svg>
+    <span class="nav-label">Config.</span>
+  </div>
+</nav>
+
+<!-- ===================== Modais ===================== -->
+
+<!-- Opções do áudio -->
+<div class="modal-overlay" id="modal-audio-options" onclick="closeModal('modal-audio-options')">
+  <div class="modal-sheet" onclick="event.stopPropagation()">
+    <div class="modal-handle"></div>
+    <div class="modal-title" id="modal-options-title">Opções</div>
+    <button class="modal-btn-secondary" onclick="openRenameModal()">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" style="flex-shrink:0">
+        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" stroke="currentColor" stroke-width="2"
+          stroke-linecap="round" stroke-linejoin="round" />
+        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" stroke="currentColor" stroke-width="2"
+          stroke-linecap="round" stroke-linejoin="round" />
+      </svg>
+      Renomear
+    </button>
+    <button class="modal-btn-secondary" onclick="openEditDbModal()">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" style="flex-shrink:0">
+        <path d="M4 21V14M4 10V3M12 21V12M12 8V3M20 21V16M20 12V3" stroke="currentColor" stroke-width="2"
+          stroke-linecap="round" />
+        <path d="M1 14h6M9 8h6M17 16h6" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+      </svg>
+      Ajustar faixa de dB
+    </button>
+    <button class="modal-btn-danger" onclick="removeAudio()">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" style="flex-shrink:0">
+        <polyline points="3 6 5 6 21 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+        <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6M10 11v6M14 11v6" stroke="currentColor" stroke-width="2"
+          stroke-linecap="round" stroke-linejoin="round" />
+        <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+          stroke-linejoin="round" />
+      </svg>
+      Remover da lista
+    </button>
+    <button class="modal-btn-ghost" onclick="closeModal('modal-audio-options')">Cancelar</button>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-rename" onclick="closeModal('modal-rename')">
+  <div class="modal-sheet" onclick="event.stopPropagation()">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Renomear</div>
+    <div class="add-field">
+      <label class="add-label">Novo nome</label>
+      <input type="text" class="add-input" id="rename-input" placeholder="Nome do áudio">
+    </div>
+    <button class="modal-btn-primary" onclick="confirmRename()">Salvar</button>
+    <button class="modal-btn-ghost" onclick="closeModal('modal-rename')">Cancelar</button>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-edit-db" onclick="closeModal('modal-edit-db')">
+  <div class="modal-sheet" onclick="event.stopPropagation()">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Ajustar Faixa de dB</div>
+    <div class="add-field">
+      <label class="add-label">Faixa de Decibéis</label>
+      <div class="db-range-row">
+        <input type="number" class="add-input db-input" id="edit-db-min" placeholder="0" min="0" max="240">
+        <span class="range-dash">&mdash;</span>
+        <input type="number" class="add-input db-input" id="edit-db-max" placeholder="60" min="0" max="240">
+        <span class="db-unit">dB</span>
+      </div>
+    </div>
+    <button class="modal-btn-primary" onclick="confirmEditDb()">Salvar</button>
+    <button class="modal-btn-ghost" onclick="closeModal('modal-edit-db')">Cancelar</button>
+  </div>
+</div>
+
+<!-- Toast -->
+<div id="toast" role="status" aria-live="polite"></div>
+
+<!-- Overlay de permissão -->
+<div class="permission-overlay" id="permission-overlay" style="display: none;">
+  <div class="permission-card">
+    <div class="permission-icon">
+      <svg width="54" height="54" viewBox="0 0 24 24" fill="none"><path d="M12 2a3 3 0 0 1 3 3v6a3 3 0 0 1-6 0V5a3 3 0 0 1 3-3z" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><path d="M19 10v1a7 7 0 0 1-14 0v-1M12 19v3M8 22h8" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </div>
+    <h2 class="permission-title">Acesso ao microfone</h2>
+    <p class="permission-desc">O EarGuard precisa do microfone para monitorar o ruído ambiente e proteger sua audição. Seus áudios nunca são gravados ou enviados.</p>
+    <button class="add-btn-primary" onclick="requestMicPermission()">Permitir acesso</button>
+    <button class="modal-btn modal-btn-ghost" onclick="dismissPermission()">Negar acesso</button>
+  </div>
+</div>
+<script src="static/js/script.js"></script>
 </body>
 
 </html>
