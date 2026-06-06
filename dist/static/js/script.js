@@ -351,7 +351,7 @@ function getProfileDefinition(profileId) {
       sensitivity: override.sensitivity || builtin.sensitivity || base.sensitivity,
       cooldown: override.cooldown ?? _clamp(Math.round(base.cooldown * builtin.cooldownFactor), 1, 60),
       debounce: override.debounce ?? _clamp(Math.round(base.debounce * builtin.debounceFactor), 100, 5000),
-      noiseNotifyThreshold: override.noiseNotifyThreshold ?? _clamp(base.noiseNotifyThreshold + builtin.thresholdDelta, 0, 150),
+      noiseNotifyThreshold: override.noiseNotifyThreshold ?? _clamp(base.noiseNotifyThreshold + builtin.thresholdDelta, 0, 200),
       dbOffset: override.dbOffset ?? _clamp(base.dbOffset + builtin.dbOffsetDelta, -100, 100),
     };
   }
@@ -1009,7 +1009,7 @@ function renderTriggerList() {
         </div>
         <div class="trigger-info">
           <div class="trigger-name">${_esc(t.name)}</div>
-          <div class="trigger-meta">${t.dbMin}–${t.dbMax} dB · ${audio ? _esc(audio.name) : 'Áudio não encontrado'} · ${t.volume || 80}%</div>
+          <div class="trigger-meta">${t.dbMin}–${t.dbMax} dB · ${audio ? _esc(audio.name) : 'Áudio não encontrado'} · ${t.volume || 100}%</div>
         </div>
         <div class="trigger-actions">
           <label class="toggle" aria-label="Ativar/Desativar gatilho" onclick="event.stopPropagation()">
@@ -1078,7 +1078,7 @@ function saveTrigger() {
   const dbMin = parseInt(_getVal('trigger-db-min'));
   const dbMax = parseInt(_getVal('trigger-db-max'));
   const audioId = _getVal('trigger-audio-select');
-  const volume = parseInt(_getVal('trigger-vol-slider')) || 80;
+  const volume = parseInt(_getVal('trigger-vol-slider')) || 100;
   const enabled = document.getElementById('trigger-enabled-toggle').checked;
 
   if (!name) {
@@ -1168,7 +1168,7 @@ async function addAudio() {
   const name = _getVal('new-audio-name').trim();
   const fileInput = document.getElementById('new-audio-file');
   const file = fileInput && fileInput.files[0];
-  const vol = parseInt(_getVal('new-audio-vol')) || 80;
+  const vol = parseInt(_getVal('new-audio-vol')) || 100;
 
   if (!name) {
     showToast('Digite um nome', 'error');
@@ -1207,8 +1207,8 @@ async function addAudio() {
   _setText('file-pick-text', 'Selecionar arquivo');
   const label = document.getElementById('file-pick-label');
   if (label) label.classList.remove('has-file');
-  _setVal('new-audio-vol', 80);
-  _setText('new-audio-vol-val', '80%');
+  _setVal('new-audio-vol', 100);
+  _setText('new-audio-vol-val', '100%');
 
   showScreen('audios');
   showToast(`"${name}" adicionado!`, 'success');
