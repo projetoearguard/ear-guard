@@ -1,8 +1,8 @@
 "use strict";
 
-/* ----------------------------------------------------------------
-   Sons integrados
-   ---------------------------------------------------------------- */
+/* ================================================================
+   SONS INTEGRADOS
+   ================================================================ */
 const DEFAULT_AUDIOS_CATALOG = [
   { id: 'white',  name: 'Ruido Branco', icon: 'noise',     desc: "Tom neutro suave",          file: 'white.mp3',  dbMin: 0, dbMax: 5,   referenceDb: 20 },
   { id: 'pink',   name: 'Ruido Rosa',   icon: 'softNoise', desc: "Espectro natural calmante", file: 'pink.mp3',   dbMin: 6, dbMax: 10,  referenceDb: 20 },
@@ -45,9 +45,9 @@ function audioIconSVG(iconName) {
   return icons[iconName] || icons.tone;
 }
 
-/* ----------------------------------------------------------------
-   Perfis
-   ---------------------------------------------------------------- */
+/* ================================================================
+   PERFIS
+   ================================================================ */
 const BUILTIN_PROFILES = {
   home:      { id: 'home',      name: 'Casa',       sensitivity: 'low',  cooldownFactor: 1.0, debounceFactor: 1.1, thresholdDelta: 0,   dbOffsetDelta: 0 },
   school:    { id: 'school',    name: 'Escola',     sensitivity: 'mid',  cooldownFactor: 0.9, debounceFactor: 1.0, thresholdDelta: -2,  dbOffsetDelta: -1 },
@@ -69,7 +69,7 @@ const CALIBRATION_SEQUENCE = DEFAULT_TRIGGERING_CATALOG.map((item) => ({
   name: item.name,
   db: item.referenceDb,
   icon: item.icon,
-  file: item.file
+  file: 'static/audios/triggering/'+item.file
 }));
 
 const SENSITIVITY_CONFIG = {
@@ -78,9 +78,9 @@ const SENSITIVITY_CONFIG = {
   hidh: { smoothing: 0.70, offsetMult: 1.2, cooldown: 1 },
 };
 
-/* ----------------------------------------------------------------
-   Estado global
-   ---------------------------------------------------------------- */
+/* ================================================================
+   ESTADO GLOBAL
+   ================================================================ */
 const state = {
   // Config
   theme: 'dark',
@@ -130,9 +130,9 @@ const state = {
   software: '0.9.0.260604.1753b0',
 };
 
-/* ----------------------------------------------------------------
-   Variáveis de runtime
-   ---------------------------------------------------------------- */
+/* ================================================================
+   VARIÁVEIS GLOBAIS
+   ================================================================ */
 let _audioEl = null;
 let _audioCtxMic = null;
 let _analyser = null;
@@ -150,91 +150,374 @@ let _statsInterval = null;
 let selectedAudioId = null;
 let editingTriggerId = null;
 
-/* ----------------------------------------------------------------
-   Boot
-   ---------------------------------------------------------------- */
+/* ================================================================
+   INICIALIZAÇÃO
+   ================================================================ */
 document.addEventListener('DOMContentLoaded', async () => {
-  loadFromStorage();
+  await initDB();
+  loadConfig();
   applyTheme(state.theme);
   syncThemeSelect();
-  renderAudioList();
-  renderDefaultGrid();
-  updateNowPlayingUI();
+  await loadAudiosFromDB();
+  loadTriggersFromStorage();
+  loadHistoryFromStorage();
 
-  showScreen('home');
+  renderAudioList();
+  renderTriggerList();
+  renderHistoryEvents();
+  renderDefaultGrid();
+  renderProfilesManager();
+  renderCalibrationStep();
+  renderNotificationPreviewOptions();
+  updateNowPlayingUI();
+  updateStatsUI();
+
+  // Sliders
+  setupSlider('new-audio-vol', 'new-audio-vol-val');
+  setupSlider('trigger-vol-slider', 'trigger-vol-val');
+  setupSlider('edit-vol-slider', 'edit-vol-val');
+
+  showScreen('triggers');
   _setText('footer-sv', state.software);
 });
 
-/* ----------------------------------------------------------------
-   Persistência
-   ---------------------------------------------------------------- */
-function loadFromStorage() {
+/* ================================================================
+   IndexedDB
+   ================================================================ */
+let _idb = null;
+
+function initDB() {
+  return new Promise((resolve, reject) => {
+    const req = indexedDB.open('earguard_db', 2);
+    req.onupgradeneeded = (e) => {
+      const db = e.target.result;
+      if (!db.objectStoreNames.contains('audios')) {
+        db.createObjectStore('audios', { keyPath: 'id' });
+      }
+    };
+    req.onsuccess = (e) => {
+      _idb = e.target.result;
+      resolve();
+    };
+    req.onerror = (e) => {
+      console.warn('IndexedDB falhou: ' + e);
+      resolve();
+    }
+  });
+}
+
+function idbPut(id, blob) {
+  return new Promise((res) => {
+    if (!_idb) return res();
+    const tx = _idb.transaction('audios', 'readwrite');
+    tx.objectStore('audios').put({ id, blob });
+    tx.oncomplete = res;
+    tx.onerror = res;
+  })
+}
+
+function idbGet(id) {
+  return new Promise ((res) => {
+    if (!_idb) return res(null);
+    const tx = _idb.transaction('audios', 'readonly');
+    const req = tx.objectStore('audios').get(id);
+    req.onsuccess = () => res(req.result ? req.result.blob : null);
+    req.onerror = () => res(null);
+  });
+}
+
+function idbDelete(id) {
+  return new Promise((res) => {
+    if (!_idb) return res();
+    const tx = _idb.transaction('audios', 'readwrite');
+    tx.objectStore('audios').delete(id);
+    tx.oncomplete = res;
+    tx.onerror = res;
+  });
+}
+
+async function loadAudiosFromDB() {
+  const saved = JSON.parse(localStorage.getItem('earguard_audios') || '[]');
+  const result = [];
+  for (const meta of saved) {
+    if (meta.isDefault) {
+      _normalizeDefaultAudioMeta(meta);
+      result.push(meta);
+    } else {
+      const blob = await idbGet(meta.storedKey);
+      if (blob) {
+        meta.src = URL.createObjectURL(blob);
+        result.push(meta);
+      }
+    }
+  }
+  state.audios = result;
+  saveAudioMeta();
+}
+
+function _normalizeDefaultAudioMeta(meta) {
+  if (!meta || !meta.isDefault) return meta;
+  if (typeof meta.id === 'string' && meta.id.startsWith('def_')) meta.id = meta.id.slice(4);
+  return meta;
+}
+
+function saveAudioMeta() {
+  const meta = state.audios.map(a => ({
+    id: a.id,
+    name: a.name,
+    isDefault: a.isDefault,
+    storedKey: a.storedKey,
+    volume: a.volume,
+    icon: a.icon,
+    fileName: a.fileName,
+  }));
+  localStorage.setItem('earguard_audios', JSON.stringify(meta));
+}
+
+/* ================================================================
+   CONFIGURAÇÃO / SALVAMENTO
+   ================================================================ */
+function loadConfig() {
   try {
-    var raw = localStorage.getItem('earguard');
+    const raw = localStorage.getItem('earguard_config');
     if (!raw) return;
-    var saved = JSON.parse(raw);
-    state.audios = saved.audios || [];
-    state.theme = saved.theme || 'dark';
-    state.connection = saved.connection || 'disconnected';
-    state.deviceId = saved.deviceId || null;
-    state.battery = saved.battery != null ? saved.battery : 78;
-    state.batNotifyThreshold = saved.batNotifyThreshold != null ? saved.batNotifyThreshold : 20;
-    state.ecoMode = saved.ecoMode || false;
-    state.ecoThreshold = saved.ecoThreshold || 0;
-    _setVal('bat-notify-input', state.batNotifyThreshold);
-    _setVal('eco-threshold', state.ecoThreshold);
-    _setChecked('eco-toggle', state.ecoMode);
-    updateEcoBadge();
-    if (state.deviceId) _setText('footer-device-id', state.deviceId);
-  } catch (e) { /* ignore */ }
+    const c = JSON.parse(raw);
+    state.theme = c.theme || 'light';
+    state.sensitivity = c.sensitivity || 'mid';
+    state.cooldown = c.cooldown ?? 3;
+    state.debounce = c.debounce ?? 800;
+    state.dbOffset = c.dbOffset ?? 0;
+    state.noiseNotifyThreshold = c.noiseNotifyThreshold ?? 80;
+    state.notifyOnTrigger = c.notifyOnTrigger ?? true;
+    state.activeProfile = c.activeProfile || null;
+    state.profileBase = { ...DEFAULT_PROFILE_BASE, ...(c.profileBase || {}) };
+    state.profileOverrides = c.profileOverrides || {};
+    state.customProfiles = Array.isArray(c.customProfiles) ? c.customProfiles : [];
+    state.calibrationIndex = c.calibrationIndex || 0;
+    state.calibrationResponses = Array.isArray(c.calibrationResponses) ? c.calibrationResponses : [];
+
+    // Sync inputs
+    _setVal('cooldown-input', state.cooldown);
+    _setVal('debounce-input', state.debounce);
+    _setVal('offset-input', state.dbOffset);
+    _setVal('cal-offset-input', state.dbOffset);
+    _setVal('noise-notify-threshold', state.noiseNotifyThreshold);
+    _setChecked('notify-trigger-toggle', state.notifyOnTrigger);
+  
+    // Sensibilidade
+    document.querySelectorAll('.sens-btn').forEach(b => {
+      b.classList.toggle('active', b.dataset.val === state.sensitivity);
+    })
+  } catch (e) {}
 }
 
-function saveToStorage() {
-  try {
-    localStorage.setItem('earguard', JSON.stringify({
-      theme: state.theme,
-      connection: state.connection,
-      deviceId: state.deviceId,
-      battery: Math.round(state.battery),
-      audios: state.audios,
-      batNotifyThreshold: state.batNotifyThreshold,
-      ecoMode: state.ecoMode,
-      ecoThreshold: state.ecoThreshold,
-    }));
-  } catch (e) { /* ignore */ }
+function saveConfig() {
+  localStorage.setItem('earguard_config', JSON.stringify({
+    theme: state.theme,
+    sensitivity: state.sensitivity,
+    cooldown: state.cooldown,
+    debounce: state.cooldown,
+    dbOffset: state.dbOffset,
+    noiseNotifyThreshold: state.noiseNotifyThreshold,
+    notifyOnTrigger: state.notifyOnTrigger,
+    activeProfile: state.activeProfile,
+    profileBase: state.profileBase,
+    profileOverrides: state.profileOverrides,
+    customProfiles: state.customProfiles,
+    calibrationIndex: state.calibrationIndex,
+    calibrationResponses: state.calibrationResponses,
+  }));
 }
 
-/* ----------------------------------------------------------------
-   Navegação
-   ---------------------------------------------------------------- */
+function _clamp(value, min, max) {
+  return Math.max(min, Math.min(max, value));
+}
+
+function _profileBaseSettings() {
+  return { ...DEFAULT_PROFILE_BASE, ...state.profileBase };
+}
+
+function getProfileDefinition(profileId) {
+  const builtin = BUILTIN_PROFILES[profileId];
+  if (builtin) {
+    const base = _profileBaseSettings();
+    const override = state.profileOverrides[profileId] || {};
+    return {
+      ...builtin,
+      ...override,
+      id: profileId,
+      builtIn: true,
+      name: override.name || builtin.name,
+      sensitivity: override.sensitivity || builtin.sensitivity || base.sensitivity,
+      cooldown: override.cooldown ?? _clamp(Math.round(base.cooldown * builtin.cooldownFactor), 1, 60),
+      debounce: override.debounce ?? _clamp(Math.round(base.debounce * builtin.debounceFactor), 100, 5000),
+      noiseNotifyThreshold: override.noiseNotifyThreshold ?? _clamp(base.noiseNotifyThreshold + builtin.thresholdDelta, 0, 150),
+      dbOffset: override.dbOffset ?? _clamp(base.dbOffset + builtin.dbOffsetDelta, -100, 100),
+    };
+  }
+  const custom = state.customProfiles.find(profile => profile.id === profileId);
+  if (!custom) return null;
+  return { ...custom, builtIn: false };
+}
+
+function getAllProfiles() {
+  return [
+    ...Object.keys(BUILTIN_PROFILES).map(getProfileDefinition).filter(Boolean),
+    ...state.customProfiles.map(profile => ({ ...profile, builtIn: false })),
+  ];
+}
+
+function renderProfilesManager() {
+  const container = document.getElementById('profiles-manager');
+  if (!container) return;
+  const profiles = getAllProfiles();
+  if (profiles.length === 0) {
+    container.innerHTML = '<p class="config-empty">Nenhum perfil disponível.</p>';
+    return;
+  }
+  container.innerHTML = profiles.map(profile => `
+    <div class="profile-asset-card ${state.activeProfile === profile.id ? 'active' : ''}">
+      <div class="profile-asset-info">
+        <div class="profile-asset-name">${_esc(profile.name)}</div>
+        <div class="profile-asset-meta">${profile.sensitivity === 'low' ? 'Baixa' : profile.sensitivity === 'mid' ? 'Média' : 'Alta'} · ${profile.cooldown}s · ${profile.debounce}ms · ${profile.noiseNotifyThreshold} dB</div>
+      </div>
+      <div class="profile-asset-actions">
+        <button class="config-select-btn" onclick="applyProfile('${_esc(profile.id)}')">Aplicar</button>
+        <button class="config-select-btn" onclick="openProfileEditor('${_esc(profile.id)}')">Editar</button>
+        ${profile.builtIn ? '' : `<button class="config-select-btn danger" onclick="deleteCustomProfile('${_esc(profile.id)}')">Excluir</button>`}
+      </div>
+    </div>
+  `).join('');
+}
+
+function openProfileEditor(profileId) {
+  const profile = profileId ? getProfileDefinition(profileId) : null;
+  selectedAudioId = null;
+  _setVal('profile-id-input', profile ? profile.id : '');
+  _setVal('profile-name-input', profile ? profile.name : '');
+  _setVal('profile-sensitivity-input', profile ? profile.sensitivity : state.sensitivity);
+  _setVal('profile-cooldown-input', profile ? profile.cooldown : state.cooldown);
+  _setVal('profile-debounce-input', profile ? profile.debounce : state.debounce);
+  _setVal('profile-threshold-input', profile ? profile.noiseNotifyThreshold : state.noiseNotifyThreshold);
+  _setVal('profile-offset-input', profile ? profile.dbOffset : state.dbOffset);
+  openModal('modal-profile-editor');
+}
+
+function saveProfileEditor() {
+  const profileId = _getVal('profile-id-input').trim();
+  const name = _getVal('profile-name-input').trim();
+  const sensitivity = _getVal('profile-sensitivity-input').trim();
+  const cooldown = parseInt(_getVal('profile-cooldown-input'));
+  const debounce = parseInt(_getVal('profile-debounce-input'));
+  const threshold = parseInt(_getVal('profile-threshold-input'));
+  const offset = parseInt(_getVal('profile-offset-input'));
+  if (!name || !sensitivity || [cooldown, debounce, threshold, offset].some(Number.isNaN)) {
+    showToast('Preencha os campos do perfil', 'error');
+    return;
+  }
+
+  const profile = {
+    id: profileId || ('profile_' + Date.now()),
+    name,
+    sensitivity,
+    cooldown: _clamp(cooldown, 0, 120),
+    debounce: _clamp(debounce, 100, 10000),
+    noiseNotifyThreshold: _clamp(threshold, 0, 200),
+    dbOffset: _clamp(offset, -100, 100),
+    builtIn: false,
+  };
+
+  if (BUILTIN_PROFILES[profile.id]) {
+    state.profileOverrides[profileId] = profile;
+    state.activeProfile = profile.id;
+  } else {
+    const index = state.customProfiles.findIndex(item => item.id === profile.id);
+    if (index >= 0) state.customProfiles[index] = profile;
+    else state.customProfiles.push(profile);
+    state.activeProfile = profile.id;
+  }
+
+  state.sensitivity = profile.sensitivity;
+  state.cooldown = profile.cooldown;
+  state.debounce = profile.debounce;
+  state.noiseNotifyThreshold = profile.noiseNotifyThreshold;
+  state.dbOffset = profile.dbOffset;
+
+  _setVal('cooldown-input', state.cooldown);
+  _setVal('debounce-input', state.debounce);
+  _setVal('offset-input', state.dbOffset);
+  _setVal('noise-notify-threshold', state.noiseNotifyThreshold);
+
+  saveConfig();
+  renderProfilesManager();
+
+  closeModal('modal-profile-editor');
+  showToast('Perfil salvo', 'success');
+}
+
+function deleteCustomProfile(profileId) {
+  state.customProfiles = state.customProfiles.filter(profile => profile.id !== profileId);
+  if (state.activeProfile === profileId) state.activeProfile = null;
+  saveConfig();
+  renderProfilesManager();
+  showToast('Perfil removido', 'info');
+}
+
+function loadTriggersFromStorage() {
+  state.triggers = JSON.parse(localStorage.getItem('earguard_triggers') || '[]');
+}
+
+function saveTriggersToStorage() {
+  localStorage.setItem('earguard_triggers', JSON.stringify(state.triggers));
+}
+
+function loadHistoryFromStorage() {
+  const saved = JSON.parse(localStorage.getItem('earguard_history') || '{}');
+  state.history = saved.events || [];
+  state.dbStat = saved.stats || { max: null, avg: null, min: null, triggerCount: 0 };
+}
+
+function saveHistoryToStorage() {
+  localStorage.setItem('earguard_history', JSON.stringify({
+    events: state.history.slice(-100),
+    stats: state.dbStat,
+  }));
+}
+
+/* ================================================================
+   NAVEGAÇÃO
+   ================================================================ */
 function showScreen(name) {
-  document.querySelectorAll('.screen').forEach(function (s) { s.classList.remove('active'); });
-  document.querySelectorAll('.nav-item').forEach(function (n) { n.classList.remove('active'); });
-  var screen = document.getElementById('screen-' + name);
-  var nav = document.getElementById('nav-' + name);
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  const screen = document.getElementById('screen-' + name);
+  const nav = document.getElementById('nav-' + name);
   if (screen) screen.classList.add('active');
   if (nav) nav.classList.add('active');
-  // Atualiza lista de áudios
   if (name === 'audios') renderAudioList();
+  if (name === 'triggers') renderTriggerList();
+  if (name === 'history') renderHistoryEvents();
+  if (name === 'configurations') { renderProfilesManager(); renderNotificationPreviewOptions(); }
+  if (name === 'calibration') renderCalibrationStep();
 }
 
-/* ----------------------------------------------------------------
-   Tema
-   ---------------------------------------------------------------- */
+/* ================================================================
+   TEMA
+   ================================================================ */
 function setTheme(val) {
   state.theme = val;
   applyTheme(val);
-  saveToStorage();
+  saveConfig();
 }
 function applyTheme(val) {
-  var effective = val;
+  let effective = val;
   if (val === 'system') {
     effective = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
   }
   document.body.setAttribute('data-theme', effective);
 }
 function syncThemeSelect() {
-  var sel = document.getElementById('theme-select');
+  const sel = document.getElementById('theme-select');
   if (sel) sel.value = state.theme;
 }
 
@@ -244,6 +527,11 @@ function syncThemeSelect() {
 async function requestMicPermission() {
   document.getElementById('permission-overlay').style.display = 'none';
   await _initMic();
+}
+
+function dismissPermission() {
+  document.getElementById('permission-overlay').style.display = 'none';
+  showToast('Monitoramento indisponível sem microfone', 'warn');
 }
 
 async function _initMic() {
@@ -257,7 +545,7 @@ async function _initMic() {
         channelCount: 1,
       }
     });
-
+    
     _audioCtxMic = new (window.AudioContext || window.webkitAudioContext)();
     _analyser = _audioCtxMic.createAnalyser();
     _analyser.fftSize = 2048;
@@ -294,7 +582,6 @@ async function startMonitoring() {
   state.sessionDbValues = [];
   state.sessionTriggerCount = 0;
   state.sessionMaxDb = null;
-  state.sessionMinDb = null;
   state.sessionWindows = [];
   state.currentWindow = {
     start: Date.now(),
@@ -313,14 +600,14 @@ async function startMonitoring() {
   _startDbLoop();
   _startStatsInterval();
 
-  //addHistoryEvent('info', 'Monitoramento iniciado', null);
+  addHistoryEvent('info', 'Monitoramento iniciado', null);
   showToast('Monitoramento iniciado', 'success');
 }
 
 function stopMonitoring() {
   if (!state.monitoringActive) return;
   state.monitoringActive = false;
-  // _finalizeSessionWindow(true);
+  _finalizeSessionWindow(true);
 
   if (_dbRafId) {
     cancelAnimationFrame(_dbRafId);
@@ -338,7 +625,7 @@ function stopMonitoring() {
   document.getElementById('monitor-ring').classList.remove('alert');
   document.getElementById('monitor-bar-fill').style.width = '0%';
 
-  //addHistoryEvent('info', 'Monitoramento pausado', null);
+  addHistoryEvent('info', 'Monitoramento pausado', null);
   showToast('Monitoramento pausado', 'info');
 }
 
@@ -371,7 +658,7 @@ function _startDbLoop() {
     let sum = 0;
     for (let i = 0; i < buffer.length; i++) sum += buffer[i] * buffer[i];
     const rms = Math.sqrt(sum / buffer.length);
-    const dbFS = rms > 1e-1 ? 20 * Math.log10(rms) : -100;
+    const dbFS = rms > 1e-10 ? 20 * Math.log10(rms) : -100;
     const sensOffset = (SENSITIVITY_CONFIG[state.sensitivity].offsetMult - 1) * 10;
     const db = Math.max(0, Math.round(dbFS + 80 + state.dbOffset + sensOffset));
 
@@ -381,24 +668,28 @@ function _startDbLoop() {
     }
 
     updateDbUI(db);
-    //_checkTriggersDebounced(db);
+    _checkTriggersDebounced(db);
 
     // Atualiza display calibração se aberta
     const calDisplay = document.getElementById('cal-db-live');
     if (calDisplay && document.getElementById('screen-calibration').classList.contains('active')) calDisplay.textContent = db;
   };
-
+  
   tick();
 }
 
 function _startStatsInterval() {
-  return;
+  _statsInterval = setInterval(() => {
+    if (!state.monitoringActive) return;
+    const elapsed = Math.round((Date.now() - state.sessionStart) / 60000);
+    _setText('stat-duration', elapsed + 'm');
+  }, 10000);
 }
 
 function updateDbUI(db) {
   _setText('monitor-db', db);
 
-  // Barra de nível (0-100)
+  // Barra de nível
   const pct = Math.min(100, db);
   document.getElementById('monitor-bar-fill').style.width = pct + '%';
 
@@ -407,8 +698,8 @@ function updateDbUI(db) {
   if (db >= state.noiseNotifyThreshold) {
     ring.classList.add('alert');
     if (!ring.dataset.alerted) {
-      ring.dataset.alert = '1';
-      //sendNotification('Ruido elevado: ' + db+ ' dB');
+      ring.dataset.alerted = '1';
+      sendNotification('Ruído elevado: ' + db + ' dB');
     }
   } else {
     ring.classList.remove('alert');
@@ -420,283 +711,705 @@ function updateDbUI(db) {
   if (state.sessionDbValues.length > 500) state.sessionDbValues.shift();
   if (state.sessionMaxDb === null || db > state.sessionMaxDb) {
     state.sessionMaxDb = db;
-    //_setText('stat-max', db);
-  } else if (state.sessionMinDb === null || db < state.sessionMinDb) state.sessionMinDb = db;
+    _setText('stat-max', db);
+  }
   const avg = Math.round(state.sessionDbValues.reduce((a,b) => a+b, 0) / state.sessionDbValues.length);
-  //_setText('stat-avg', avg);
+  _setText('stat-avg', avg);
 
   // Salva em histórico global
   if (state.dbStat.max === null || db > state.dbStat.max) state.dbStat.max = db;
-  else if (state.dbStat.min === null || db < state.dbStat.min) state.dbStat.min = db;
-  //_captureSessionWindowSample(db);
+  _captureSessionWindowSample(db);
 }
 
+/* ================================================================
+   REPRODUÇÃO
+   ================================================================ */
+function playAudioById(audioId, volume) {
+  const audio = state.audios.find(a => a.id === audioId);
+  if (!audio || !audio.src) {
+    showToast("Áudio indisponível", 'warn');
+    return;
+  }
 
-/* ----------------------------------------------------------------
-   Tela add áudio
-   ---------------------------------------------------------------- */
-function switchAddTab(tab) {
-  document.getElementById('tab-file').classList.toggle('active', tab === 'file');
-  document.getElementById('tab-default').classList.toggle('active', tab === 'default');
-  document.getElementById('panel-file').classList.toggle('active', tab === 'file');
-  document.getElementById('panel-default').classList.toggle('active', tab === 'default');
-  if (tab === 'default') renderDefaultGrid();
-}
+  _stopAudio(true);
 
-/* ----------------------------------------------------------------
-   Lista de sons integrados
-   ---------------------------------------------------------------- */
-function renderDefaultGrid() {
-  var grid = document.getElementById('default-audio-grid');
-  if (!grid) return;
+  _audioEl = new Audio();
+  _audioEl.src = audio.src;
+  _audioEl.loop = true;
+  _audioEl.volume = volume !== undefined ? volume : (audio.volume || 100) / 100;
 
-  // IDs de sons ja adicionados
-  var addedIds = state.audios.filter(function (a) { return a.isDefault; }).map(function (a) { return a.catalogId; });
-
-  grid.innerHTML = DEFAULT_AUDIOS_CATALOG.map(function (d) {
-    var isAdded = addedIds.indexOf(d.id) !== -1;
-    return '<div class="default-audio-row' + (isAdded ? ' added' : '') + '">' +
-      '<div class="default-audio-icon">' +
-      '<svg width="20" height="20" viewBox="0 0 24 24" fill="none">' +
-      '<path d="M9 19V6l12-3v13M9 19c0 1.1-.9 2-2 2s-2-.9-2-2 .9-2 2-2 2 .9 2 2zm12-3c0 1.1-.9 2-2 2s-2-.9-2-2 .9-2 2-2 2 .9 2 2z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>' +
-      '</svg>' +
-      '</div>' +
-      '<div class="default-audio-info">' +
-      '<div class="default-audio-name">' + _esc(d.name) + '</div>' +
-      '<div class="default-audio-db">Faixa padrao: ' + d.dbMin + ' dB \u2014 ' + d.dbMax + ' dB</div>' +
-      '</div>' +
-      (isAdded
-        ? '<div class="default-audio-btn added">Adicionado</div>'
-        : '<button class="default-audio-btn" onclick="addDefaultAudio(\'' + d.id + '\')">Adicionar</button>'
-      ) +
-      '</div>';
-  }).join('');
-}
-
-async function getFileSize(url) {
-  const response = await fetch(url);
-  const blob = await response.blob();
-
-  const sizeKB = (blob.size / 1024).toFixed(2)
-  
-  if (parseFloat(sizeKB) < 1000) return `${sizeKB} KB`;
-
-  const sizeMB = (blob.size / (1024 * 1024)).toFixed(2);
-  return `${sizeMB} MB`;
-}
-
-async function addDefaultAudio(catalogId) {
-  var d = DEFAULT_AUDIOS_CATALOG.find(function (x) { return x.id === catalogId; });
-  if (!d) return;
-  // Se já existe
-  var exists = state.audios.some(function (a) { return a.catalogId === catalogId; });
-  if (exists) { showToast('Som ja foi adicionado', 'warn'); return; }
-
-  const src = 'static/audios/' + d.file;
-  const size = await getFileSize(src);
-
-  state.audios.push({
-    id: catalogId + '_' + Date.now(),
-    catalogId: catalogId,
-    name: d.name,
-    file: d.file,
-    size: size,
-    dbMin: d.dbMin,
-    dbMax: d.dbMax,
-    isDefault: true,
-    src: src,
-    addedAt: new Date().toLocaleDateString('pt-BR'),
+  // Fade in
+  _audioEl.volume = 0;
+  const targetVol = volume !== undefined ? volume : (audio.volume || 100) / 100;
+  _audioEl.play().then(() => {
+    state.isPlaying = true;
+    state.currentAudioId = audioId;
+    _fadeVolume(_audioEl, 0, targetVol, 800);
+    updateNowPlayingUI();
+    renderAudioList();
+  }).catch(() => {
+    state.isPlaying = true;
+    state.currentAudioId = audioId;
+    updateNowPlayingUI();
+    renderAudioList();
+    showToast('Toque play para iniciar', 'info');
   });
 
-  saveToStorage();
-  renderDefaultGrid();  // Atualiza botao para "Adicionado"
-  showToast('"' + d.name + '" adicionado!', 'success');
+  _audioEl.addEventListener('error', () => {
+    if (state.debugMode) showToast('Erro ao carregar áudio', 'error');
+    state.isPlaying = false;
+    updateNowPlayingUI();
+  });
+
+  _audioEl.addEventListener('timeupdate', () => {
+    if (!_audioEl || !_audioEl.duration) return;
+    const bar = document.getElementById('np-progress');
+    if (bar) bar.style.width = (_audioEl.currentTime / _audioEl.duration * 100) + '%';
+  });
 }
 
-/* ----------------------------------------------------------------
-   Add áudio do dispositivo
-   ---------------------------------------------------------------- */
-function onFileSelected(input) {
-  var file = input.files[0];
-  var label = document.getElementById('file-pick-label');
-  var span = document.getElementById('file-pick-text');
-  if (file) {
-    span.textContent = file.name;
-    label.classList.add('has-file');
-    // Pré-preenche nome caso vazio
-    var nameEl = document.getElementById('new-audio-name');
-    if (nameEl && !nameEl.value.trim()) {
-      nameEl.value = file.name.replace(/\.[^.]+$/, '');
+function _fadeVolume(el, from, to, duration) {
+  return;
+}
+
+function _stopAudio(fade = false) {
+  return;
+}
+
+function stopAudioManual() {
+  return;
+}
+
+function togglePlayPause() {
+  return;
+}
+
+function updateNowPlayingUI() {
+  return;
+}
+
+/* ================================================================
+   SENSIBILIDADE E PERFIS
+   ================================================================ */
+function setSensitivity(val) {
+  state.sensitivity = val;
+  state.activeProfile = null;
+  if (_analyser) _analyser.smoothingTimeConstant = SENSITIVITY_CONFIG[val].smoothing;
+  document.querySelectorAll('.sens-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.val === val);
+  });
+  saveConfig();
+}
+
+function applyProfile(key) {
+  const p = getProfileDefinition(key);
+  if (!p) return;
+  state.sensitivity = p.sensitivity;
+  state.cooldown = p.cooldown;
+  state.debounce = p.debounce;
+  state.noiseNotifyThreshold = p.noiseNotifyThreshold ?? state.noiseNotifyThreshold;
+  state.dbOffset = p.dbOffset ?? state.dbOffset;
+  state.activeProfile = key;
+
+  if (_analyser) _analyser.smoothingTimeConstant = SENSITIVITY_CONFIG[p.sensitivity].smoothing;
+  document.querySelectorAll('.sens-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.val === p.sensitivity);
+  });
+
+  _setVal('cooldown-input', state.cooldown);
+  _setVal('debounce-input', state.debounce);
+  _setVal('offset-input', state.dbOffset);
+  _setVal('noise-notify-threshold', state.noiseNotifyThreshold);
+
+  saveConfig();
+  renderProfilesManager();
+  showToast('Perfil "' + p.name + '" aplicado', 'success');
+}
+
+/* ================================================================
+   CONFIGURAÇÕES
+   ================================================================ */
+
+function saveMonitorConfig() {
+  return;
+}
+
+function saveNotifyConfig() {
+  return;
+}
+
+function renderNotificationPreviewOptions() {
+  return;
+}
+
+function playNotifyPreview() {
+  return;
+}
+
+function saveCalibration() {
+  return;
+}
+
+function startCalibrationFlow() {
+  return;
+}
+
+function renderCalibrationStep() {
+  return;
+}
+
+function playCalibrationStep() {
+  return;
+}
+
+function setCalibrationRating(rating) {
+  return;
+}
+
+function nextCalibrationStep() {
+  return;
+}
+
+function finishCalibrationFlow() {
+  return;
+}
+
+/* ================================================================
+   NOTIFICAÇÕES
+   ================================================================ */
+async function requestNotificationPermission() {
+  if (!('Notification' in window)) return;
+  if (Notification.permission === 'default') await Notification.requestPermission();
+}
+
+function sendNotification(text) {
+  if (!('Notification' in window)) return;
+  if (Notification.permission !== 'granted') return;
+  try {
+    new Notification('EarGuard', { body: text, icon: '' });
+  } catch(e) {}
+}
+
+/* ================================================================
+   HISTÓRICO
+   ================================================================ */
+function addHistoryEvent(type, text, db, meta = {}) {
+  return;
+}
+
+function renderHistoryEvents() {
+  return;
+}
+
+function clearHistory() {
+  return;
+}
+
+function updateStatsUI() {
+  return;
+}
+
+function _timeLabel(timestamp) {
+  return;
+}
+
+function _captureSessionWindowSample(db) {
+  return;
+}
+
+function _finalizeSessionWindow(isClosingSession) {
+  return;
+}
+
+
+/* ================================================================
+   GATILHOS
+   ================================================================ */
+function _checkTriggersDebounced(db) {
+  _pendingDb = db;
+  clearTimeout(_debounceTimer);
+  _debounceTimer = setTimeout(() => {
+    _checkTriggers(_pendingDb);
+  }, state.debounce);
+}
+
+function _checkTriggers(db) {
+  const now = Date.now();
+  if (now < _cooldownUntil) return;
+
+  for (const trigger of state.triggers) {
+    if (!trigger.enabled) continue;
+    if (db >= trigger.dbMin && db <= trigger.dbMax) {
+      if (_currentTriggerAudioId !== trigger.id) {
+        _currentTriggerAudioId = trigger.id;
+        _activateTrigger(trigger, db);
+        _cooldownUntil = now + state.cooldown * 1000;
+      }
+      return;
     }
-  } else {
-    span.textContent = 'Selecionar arquivo';
-    label.classList.remove('has-file');
+  }
+
+  // Nenhum gatilho, se havia um ativo, para
+  // Não para a música automaticamente
+  if (_currentTriggerAudioId && state.isPlaying) {
+    _currentTriggerAudioId = null;
   }
 }
 
-function addAudio() {
-  var name = _getVal('new-audio-name').trim();
-  var fileEl = document.getElementById('new-audio-file');
-  var file = fileEl && fileEl.files[0];
-  var dbMin = parseInt(_getVal('new-db-min'));
-  var dbMax = parseInt(_getVal('new-db-max'));
+function _activateTrigger(trigger, db) {
+  const audio = state.audios.find(a => a.id === trigger.audioId);
+  if (!audio) return;
+
+  const vol = (trigger.volume || 100) / 100;
+  playAudioById(audio.id, vol);
+
+  state.sessionTriggerCount++;
+  state.dbStat.triggerCount = (state.dbStat.triggerCount || 0) + 1;
+  _setText('stat-triggers', state.sessionTriggerCount);
+
+  addHistoryEvent('success', `Gatilho "${trigger.name}" - ${audio.name}`, db);
+
+  if (state.notifyOnTrigger) sendNotification(`Gatilho ativado: ${trigger.name}`);
+
+  saveHistoryToStorage();
+}
+
+function renderTriggerList() {
+  const container = document.getElementById('trigger-list-container');
+  if (!container) return;
+
+  if (state.triggers.length === 0) {
+    container.innerHTML = `
+      <div class="empty-state">
+        <svg width="40" height="40" viewBox="0 0 24 24" fill="none">
+          <path d="M4 21V14M4 10V3M12 21V12M12 8V3M20 21V16M20 12V3M1 14h6M9 8h6M17 16h6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+        <p>Nenhum gatilho configurado</p>
+        <span>Adicione gatilhos para reproduzir sons automaticamente conforme o nível de ruído</span>
+      </div>
+      <button class="add-btn-primary" onclick="openAddTriggerModal()" style="margin-top:8px">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+          <path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+        </svg>
+        Criar primeiro gatilho
+      </button>
+    `;
+    return;
+  }
+
+  container.innerHTML = state.triggers.map(t => {
+    const audio = state.audios.find(a => a.id === t.audioId);
+    const isActive = _currentTriggerAudioId === t.id;
+    return `
+      <div class="trigger-card ${!t.enabled ? 'disabled' : ''} ${isActive ? 'active-now' : ''}">
+        <div class="trigger-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+            <path d="M4 21V14M4 10V3M12 21V12M12 8V3M20 21V16M20 12V3M1 14h6M9 8h6M17 16h6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <div class="trigger-info">
+          <div class="trigger-name">${_esc(t.name)}</div>
+          <div class="trigger-meta">${t.dbMin}–${t.dbMax} dB · ${audio ? _esc(audio.name) : 'Áudio não encontrado'} · ${t.volume || 80}%</div>
+        </div>
+        <div class="trigger-actions">
+          <label class="toggle" aria-label="Ativar/Desativar gatilho" onclick="event.stopPropagation()">
+            <input type="checkbox" ${t.enabled ? 'checked' : ''} onchange="toggleTriggerEnabled('${_esc(t.id)}', this.checked)">
+            <span class="toggle-track"></span>
+          </label>
+          <button class="trigger-edit-btn" onclick="openEditTriggerModal('${_esc(t.id)}')" aria-label="Editar">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+          </button>
+          <button class="trigger-edit-btn" onclick="deleteTrigger('${_esc(t.id)}')" aria-label="Excluir">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+              <polyline points="3 6 5 6 21 6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+              <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6M10 11v6M14 11v6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function renderTriggerAudioSelect() {
+  const sel = document.getElementById('trigger-audio-select');
+  if (!sel) return;
+  const current = sel.value;
+  sel.innerHTML = '<option value="">Selecionar áudio...</option>' +
+    state.audios.map(a => `<option value="${_esc(a.id)}">${_esc(a.name)}</option>`).join('');
+  if (current) sel.value = current;
+}
+
+function openAddTriggerModal() {
+  editingTriggerId = null;
+  _setText('modal-trigger-title', 'Novo Gatilho');
+  _clearField('trigger-name-input');
+  _clearField('trigger-db-min');
+  _clearField('trigger-db-max');
+  renderTriggerAudioSelect();
+  document.getElementById('trigger-audio-select').value = '';
+  _setVal('trigger-vol-slider', 100);
+  _setText('trigger-vol-val', '100%');
+  _setChecked('trigger-enabled-toggle', true);
+  openModal('modal-trigger');
+}
+
+function openEditTriggerModal(id) {
+  const t = state.triggers.find(x => x.id === id);
+  if (!t) return;
+  editingTriggerId = id;
+  _setText('modal-trigger-title', 'Editar Gatilho');
+  _setVal('trigger-name-input', t.name);
+  _setVal('trigger-db-min', t.dbMin);
+  _setVal('trigger-db-max', t.dbMax);
+  renderTriggerAudioSelect();
+  document.getElementById('trigger-audio-select').value = t.audioId || '';
+  const vol = t.volume || 100;
+  _setVal('trigger-vol-slider', vol);
+  _setText('trigger-vol-val', vol + '%');
+  _setChecked('trigger-enabled-toggle', t.enabled !== false);
+  openModal('modal-trigger');
+}
+
+function saveTrigger() {
+  const name = _getVal('trigger-name-input').trim();
+  const dbMin = parseInt(_getVal('trigger-db-min'));
+  const dbMax = parseInt(_getVal('trigger-db-max'));
+  const audioId = _getVal('trigger-audio-select');
+  const volume = parseInt(_getVal('trigger-vol-slider')) || 80;
+  const enabled = document.getElementById('trigger-enabled-toggle').checked;
 
   if (!name) {
-    showToast('Informe o nome do áudio', 'error');
+    showToast('Digite um nome', 'error');
+    return;
+  } else if (isNaN(dbMin) || isNaN(dbMax)) {
+    showToast('Informe os valores de dB', 'error');
+    return;
+  } else if (dbMin >= dbMax) {
+    showToast('dB mínimo deve ser menor que o máximo', 'error');
+    return;
+  } else if (!audioId) {
+    showToast('Selecione um áudio', 'error');
+    return;
+  }
+
+  if (editingTriggerId) {
+    const t = state.triggers.find(x => x.id === editingTriggerId);
+    if (t) {
+      t.name = name;
+      t.dbMin = dbMin;
+      t.dbMax = dbMax;
+      t.audioId = audioId;
+      t.volume = volume;
+      t.enabled = enabled;
+    }
+  } else {
+    state.triggers.push({
+      id: 'trig_' + Date.now(),
+      name,
+      dbMin,
+      dbMax,
+      audioId,
+      volume,
+      enabled,
+    });
+  }
+
+  saveTriggersToStorage();
+  renderTriggerList();
+  closeModal('modal-trigger');
+  showToast(editingTriggerId ? 'Gatilho atualizado' : 'Gatilho criado!', 'success');
+}
+
+function toggleTriggerEnabled(id, enabled) {
+  const t = state.triggers.find(x => x.id === id);
+  if (t) {
+    t.enabled = enabled;
+    saveTriggersToStorage();
+    renderTriggerList();
+  }
+}
+
+function deleteTrigger(id) {
+  const idx = state.triggers.findIndex(x => x.id === id);
+  if (idx !== -1) {
+    state.triggers.splice(idx, 1);
+    saveTriggersToStorage();
+    renderTriggerList();
+    showToast('Gatilho excluído', 'info');
+  }
+}
+
+/* ================================================================
+   ADICIONAR ÁUDIO
+   ================================================================ */
+function switchAddTab(tab) {
+  document.querySelectorAll('.add-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.add-panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('tab-' + tab).classList.add('active');
+  document.getElementById('panel-' + tab).classList.add('active');
+}
+
+function onFileSelected(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const label = document.getElementById('file-pick-label');
+  const text = document.getElementById('file-pick-text');
+  if (text) text.textContent = file.name;
+  if (label) label.classList.add('has-file');
+  // Auto-preenche nome se vazio
+  const nameInput = document.getElementById('new-audio-name');
+  if (nameInput && !nameInput.value) nameInput.value = file.name.replace(/\.[^/.]+$/, '');
+}
+
+async function addAudio() {
+  const name = _getVal('new-audio-name').trim();
+  const fileInput = document.getElementById('new-audio-file');
+  const file = fileInput && fileInput.files[0];
+  const vol = parseInt(_getVal('new-audio-vol')) || 80;
+
+  if (!name) {
+    showToast('Digite um nome', 'error');
     return;
   }
   if (!file) {
-    showToast('Selecione um arquivo de áudio', 'error');
+    showToast('Selecione um arquivo', 'error');
     return;
   }
 
-  var ext = '.' + file.name.split('.').pop().toLowerCase();
-  if (['.mp3', '.wav', '.wma'].indexOf(ext) === -1) {
-    showToast('Formato invalido. Use MP3, WAV ou WMA', 'error');
-    return;
-  }
-  var hasRange = !isNaN(dbMin) && !isNaN(dbMax);
-  if (hasRange && dbMin >= dbMax) {
-    showToast('dB mínimo deve ser menor que o máximo', 'error');
-    return;
-  }
+  const id = 'usr_' + Date.now();
+  const storedKey = 'audio_' + id;
+
+  // Salva blob no IndexedDB
+  await idbPut(storedKey, file);
+  const src = URL.createObjectURL(file);
 
   state.audios.push({
-    id: 'user_' + Date.now(),
-    catalogId: null,
-    name: name,
-    file: file.name,
-    ext: ext,
-    size: _fmtSize(file.size),
-    dbMin: hasRange ? dbMin : null,
-    dbMax: hasRange ? dbMax : null,
+    id,
+    name,
     isDefault: false,
-    src: URL.createObjectURL(file),
-    addedAt: new Date().toLocaleDateString('pt-BR'),
+    src,
+    storedKey,
+    volume: vol,
+    icon: 'tone',
+    fileName: file.name,
   });
 
-  saveToStorage();
-  showToast('"' + name + '" adicionado!', 'success');
+  saveAudioMeta();
+  renderAudioList();
+  renderTriggerAudioSelect();
+
+  // Reset form
+  _clearField('new-audio-name');
+  fileInput.value = '';
+  _setText('file-pick-text', 'Selecionar arquivo');
+  const label = document.getElementById('file-pick-label');
+  if (label) label.classList.remove('has-file');
+  _setVal('new-audio-vol', 80);
+  _setText('new-audio-vol-val', '80%');
+
   showScreen('audios');
+  showToast(`"${name}" adicionado!`, 'success');
 }
 
-/* ----------------------------------------------------------------
-   Lista de áudios
-   ---------------------------------------------------------------- */
-function renderAudioList() {
-  var container = document.getElementById('audio-list-container');
+function renderDefaultGrid() {
+  const container = document.getElementById('default-audio-grid');
   if (!container) return;
-
-  if (state.audios.length === 0) {
-    container.innerHTML =
-      '<div class="empty-musicas">' +
-      '<svg width="52" height="52" viewBox="0 0 24 24" fill="none">' +
-      '<path d="M9 19V6l12-3v13M9 19c0 1.1-.9 2-2 2s-2-.9-2-2 .9-2 2-2 2 .9 2 2zm12-3c0 1.1-.9 2-2 2s-2-.9-2-2 .9-2 2-2 2 .9 2 2z" stroke="var(--text3)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>' +
-      '</svg>' +
-      '<p>Nenhum audio na lista</p>' +
-      '<small>Toque o + para adicionar sons</small>' +
-      '</div>';
-    return;
-  }
-
-  container.innerHTML = state.audios.map(function (a, i) {
-    var isPlaying = state.currentAudioIndex === i && state.isPlaying;
-    var noteColor = isPlaying ? 'var(--accent)' : 'var(--text3)';
-    return '<div class="audio-card' + (isPlaying ? ' audio-card--playing' : '') + '" data-index="' + i + '">' +
-      '<div class="audio-card-thumb" onclick="playAudio(' + i + ')">' +
-      '<svg width="24" height="24" viewBox="0 0 24 24" fill="none">' +
-      '<path d="M9 19V6l12-3v13M9 19c0 1.1-.9 2-2 2s-2-.9-2-2 .9-2 2-2 2 .9 2 2zm12-3c0 1.1-.9 2-2 2s-2-.9-2-2 .9-2 2-2 2 .9 2 2z" stroke="' + noteColor + '" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>' +
-      '</svg>' +
-      (a.isDefault ? '<div class="default-badge">padrao</div>' : '') +
-      '</div>' +
-      '<div class="audio-card-info" onclick="playAudio(' + i + ')">' +
-      '<div class="audio-card-name">' + _esc(a.name) + '</div>' +
-      '<div class="audio-card-meta">' + _esc(a.file) + ' \u00b7 ' + a.size + '</div>' +
-      '<div class="audio-card-db">' + (a.dbMin !== null ? 'Faixa: ' + a.dbMin + ' dB \u2014 ' + a.dbMax + ' dB' : 'Faixa: não definida') + '</div>' +
-      '</div>' +
-      '<button class="audio-dots-btn" onclick="openAudioOptions(' + i + ')" aria-label="Opcoes">' +
-      '<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">' +
-      '<circle cx="12" cy="5"  r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="12" cy="19" r="1.8"/>' +
-      '</svg>' +
-      '</button>' +
-      '</div>';
+  container.innerHTML = DEFAULT_AUDIOS_CATALOG.map(def => {
+    const alreadyAdded = state.audios.some(a => a.id === def.id);
+    return `
+      <div class="default-audio-item ${alreadyAdded ? 'added' : ''}" onclick="${alreadyAdded ? '' : `addDefaultAudio('${def.id}')`}">
+        <div class="default-audio-icon">${audioIconSVG(def.icon)}</div>
+        <div class="default-audio-info">
+          <div class="default-audio-name">${_esc(def.name)}</div>
+          <div class="default-audio-range">${def.desc}</div>
+        </div>
+        <span class="default-audio-action">${alreadyAdded ? 'Adicionado' : 'Adicionar'}</span>
+      </div>
+    `;
   }).join('');
 }
 
-/* ----------------------------------------------------------------
-   Opções do áudio
-   ---------------------------------------------------------------- */
-function openAudioOptions(index) {
-  selectedAudioIndex = index;
-  _setText('modal-options-title', state.audios[index].name);
-  openModal('modal-audio-options');
+function addDefaultAudio(defId) {
+  const def = DEFAULT_AUDIOS_CATALOG.find(d => d.id === defId);
+  if (!def) return;
+  if (state.audios.some(a => a.id === defId)) {
+    showToast('Já adicionado', 'warn');
+    return;
+  }
+
+  const src = 'static/audios/' + (def.file || defId+'.mp3');
+
+  state.audios.push({
+    id: def.id,
+    name: def.name,
+    isDefault: true,
+    src,
+    storedKey: null,
+    volume: 70,
+    icon: def.icon,
+    fileName: null,
+  });
+
+  saveAudioMeta();
+  renderDefaultGrid();
+  renderAudioList();
+  renderTriggerAudioSelect();
+  showToast('"' + def.name + '" adicionado!', 'success');
+}
+
+/* ================================================================
+   GATILHOS
+   ================================================================ */
+
+
+/* ================================================================
+   LISTA DE ÁUDIOS
+   ================================================================ */
+function renderAudioList() {
+  const container = document.getElementById('audio-list-container');
+  if (!container) return;
+
+  if (state.audios.length === 0) {
+    container.innerHTML = `
+      <div class="empty-state">
+        <svg width="40" height="40" viewBox="0 0 24 24" fill="none">
+          <path d="M9 18V6l12-3v12M9 18c0 1.1-.9 2-2 2s-2-.9-2-2 .9-2 2-2 2 .9 2 2zm12-3c0 1.1-.9 2-2 2s-2-.9-2-2 .9-2 2-2 2 .9 2 2z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+        <p>Biblioteca vazia</p>
+        <span>Adicione sons do dispositivo ou escolha sons integrados</span>
+      </div>
+      <button class="add-btn-primary" onclick="showScreen('add-audio')" style="margin-top:8px">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+          <path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+        </svg>
+        Adicionar primeiro áudio
+      </button>
+    `;
+    return;
+  }
+
+  container.innerHTML = state.audios.map(a => {
+    var isPlaying = state.currentAudioIndex === a.id && state.isPlaying;
+    return `
+      <div class="audio-card ${isPlaying ? 'audio-card--playing' : ''}" onclick="onAudioCardClick('${_esc(a.id)}')">
+        <div class="audio-card-thumb">
+          ${a.icon ? audioIconSVG(a.icon) : playIconSVG(isPlaying)}
+        </div>
+        <div class="audio-card-info">
+          <div class="audio-card-name">${_esc(a.name)}</div>
+          <div class="audio-card-meta">
+            ${a.isDefault ? '<span class="default-badge">INTEGRADO</span>' : ''}
+            <span>${a.fileName || ''}</span>
+          </div>
+        </div>
+        <button class="audio-card-options" onclick="event.stopPropagation(); openAudioOptions('${_esc(a.id)}')" aria-label="Opções">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+            <circle cx="12" cy="5" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="12" cy="19" r="1.5"/>
+          </svg>
+        </button>
+      </div>
+    `;
+  }).join('');
+}
+
+function playIconSVG(active) {
+  return `<svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+    <path d="M9 18V6l12-3v12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+  </svg>`;
+}
+
+function onAudioCardClick(audioId) {
+  if (state.currentAudioId === audioId && state.isPlaying) {
+    _audioEl && _audioEl.pause();
+    state.isPlaying = false;
+    updateNowPlayingUI();
+    renderAudioList();
+  } else playAudioById(audioId);
+}
+
+function openAudioOptions(audioId) {
+  selectedAudioId = audioId;
+  const a = state.audios.find(x => x.id === audioId);
+  if (a) _setText('modal-options-title', a.name);
+  openModal('modal-audio-options')
+}
+
+function previewSelectedAudio() {
+  closeModal('modal-audio-options');
+  if (!selectedAudioId) return;
+  playAudioById(selectedAudioId);
+  showScreen('home');
 }
 
 function openRenameModal() {
   closeModal('modal-audio-options');
-  if (selectedAudioIndex === null) return;
-  _setVal('rename-input', state.audios[selectedAudioIndex].name);
+  if (!selectedAudioId) return;
+  const a = state.audios.find(x => x.id === selectedAudioId);
+  if (a) _setVal('rename-input', a.name);
   openModal('modal-rename');
 }
 
 function confirmRename() {
-  var val = _getVal('rename-input').trim();
+  if (!selectedAudioId) return;
+  const val = _getVal('rename-input').trim();
   if (!val) {
-    showToast('Nome não pode ser vazio', 'error');
+    showToast('Digite um nome', 'error');
     return;
   }
-  if (selectedAudioIndex === null) return;
-  state.audios[selectedAudioIndex].name = val;
+  const a = state.audios.find(x => x.id === selectedAudioId);
+  if (a) { a.name = val; }
+  saveAudioMeta();
   renderAudioList();
   updateNowPlayingUI();
-  saveToStorage();
   closeModal('modal-rename');
-  showToast('Áudio renomeado!', 'success');
+  showToast('Renomeado!', 'success');
 }
 
-function openEditDbModal() {
+function openEditVolumeModal() {
   closeModal('modal-audio-options');
-  if (selectedAudioIndex === null) return;
-  var a = state.audios[selectedAudioIndex];
-  _setVal('edit-db-min', a.dbMin !== null ? a.dbMin : '');
-  _setVal('edit-db-max', a.dbMax !== null ? a.dbMax : '');
-  openModal('modal-edit-db');
+  if (!selectedAudioId) return;
+  const a = state.audios.find(x => x.id === selectedAudioId);
+  const vol = a ? (a.volume || 100) : 100;
+  const slider = document.getElementById('edit-vol-slider');
+  if (slider) {
+    slider.value = vol;
+    _setText('edit-vol-val', vol + '%');}
+  openModal('modal-edit-volume');
 }
 
-function confirmEditDb() {
-  if (selectedAudioIndex === null) return;
-  var dbMin = parseInt(_getVal('edit-db-min'));
-  var dbMax = parseInt(_getVal('edit-db-max'));
-  if (isNaN(dbMin) || isNaN(dbMax)) {
-    showToast('Informe os dois valores de dB', 'error');
-    return;
+function confirmEditVolume() {
+  if (!selectedAudioId) return;
+  const vol = parseInt(_getVal('edit-vol-slider'));
+  const a = state.audios.find(x => x.id === selectedAudioId);
+  if (a) { a.volume = vol; }
+  if (_audioEl && state.currentAudioId === selectedAudioId) {
+    _audioEl.volume = vol / 100;
   }
-  if (dbMin >= dbMax) {
-    showToast('dB mínimo deve ser menor que o máximo', 'error');
-    return;
-  }
-  state.audios[selectedAudioIndex].dbMin = dbMin;
-  state.audios[selectedAudioIndex].dbMax = dbMax;
-  renderAudioList();
-  saveToStorage();
-  closeModal('modal-edit-db');
-  showToast('Faixa de dB atualizada!', 'success');
+  saveAudioMeta();
+  closeModal('modal-edit-volume');
+  showToast('Volume salvo', 'success');
 }
 
-function removeAudio() {
-  if (selectedAudioIndex === null) return;
-  var a = state.audios[selectedAudioIndex];
+async function removeAudio() {
+  if (!selectedAudioId) return;
+  const idx = state.audios.findIndex(x => x.id === selectedAudioId);
+  if (idx === -1) return;
+  const a = state.audios[idx];
+
+  if (state.currentAudioId === selectedAudioId) stopAudioManual();
+  if (a.storedKey) await idbDelete(a.storedKey);
   if (!a.isDefault && a.src && a.src.startsWith('blob:')) URL.revokeObjectURL(a.src);
-  if (state.currentAudioIndex === selectedAudioIndex) _stopAudio();
-  if (state.currentAudioIndex !== null && state.currentAudioIndex > selectedAudioIndex) state.currentAudioIndex--;
-  var name = a.name;
-  state.audios.splice(selectedAudioIndex, 1);
-  selectedAudioIndex = null;
+
+  state.audios.splice(idx, 1);
+  selectedAudioId = null;
+  saveAudioMeta();
   renderAudioList();
-  renderDefaultGrid();  // reabilita botão "Adicionar" se era áudio padrão
-  saveToStorage();
+  renderDefaultGrid();
   closeModal('modal-audio-options');
-  showToast('"' + name + '" removido', 'info');
+  showToast('Áudio removido', 'info');
 }
 
 /* ----------------------------------------------------------------
@@ -826,80 +1539,55 @@ function updateNowPlayingUI() {
   }
 }
 
-/* ----------------------------------------------------------------
-   Configurações
-   ---------------------------------------------------------------- */
-function saveBatNotify() {
-  var val = parseInt(_getVal('bat-notify-input'));
-  if (isNaN(val) || val < 0 || val > 100) {
-    showToast('Valor deve estar entre 0 e 100', 'error');
-    return;
-  }
-  state.batNotifyThreshold = val;
-  saveToStorage();
-  showToast('Configuração salva!', 'success');
-}
-function toggleEcoMode(checkbox) {
-  state.ecoMode = checkbox.checked;
-  updateEcoBadge();
-  saveToStorage();
-  showToast('Modo economia ' + (state.ecoMode ? 'ativado' : 'desativado'), 'info');
-}
-function saveEcoSettings() {
-  var val = parseInt(_getVal('eco-threshold'));
-  if (isNaN(val) || val < 0 || val > 100) {
-    showToast('Valor deve estar entre 0 e 100', 'error');
-    return;
-  }
-  state.ecoThreshold = val;
-  saveToStorage();
-  showToast('Configuração salva!', 'success');
-}
-function updateEcoBadge() {
-  var badge = document.getElementById('eco-badge');
-  if (!badge) return;
-  badge.textContent = state.ecoMode ? 'Ativado' : 'Desativado';
-  badge.classList.toggle('active', state.ecoMode);
-}
-
-/* ----------------------------------------------------------------
-   Modais
-   ---------------------------------------------------------------- */
+/* ================================================================
+   MODAIS
+   ================================================================ */
 function openModal(id) {
-  var el = document.getElementById(id);
+  const el = document.getElementById(id);
   if (el) el.classList.add('active');
 }
 function closeModal(id) {
-  var el = document.getElementById(id);
+  const el = document.getElementById(id);
   if (el) el.classList.remove('active');
 }
 
-/* ----------------------------------------------------------------
-   Toast
-   ---------------------------------------------------------------- */
-function showToast(msg, type) {
-  type = type || 'info';
-  var toast = document.getElementById('toast');
+/* ================================================================
+   TOAST
+   ================================================================ */
+function showToast(msg, type = 'info') {
+  const toast = document.getElementById('toast');
   if (!toast) return;
   toast.textContent = msg;
   toast.className = 'toast-' + type + ' show';
   clearTimeout(_toastTimeout);
-  _toastTimeout = setTimeout(function () { toast.className = ''; }, 3200);
+  _toastTimeout = setTimeout(() => { toast.className = ''; }, 3000);
 }
 
-/* ----------------------------------------------------------------
-   Helpers
-   ---------------------------------------------------------------- */
-function _getVal(id) { var el = document.getElementById(id); return el ? el.value : ''; }
-function _setVal(id, val) { var el = document.getElementById(id); if (el) el.value = val; }
-function _setText(id, txt) { var el = document.getElementById(id); if (el) el.textContent = txt; }
-function _setChecked(id, bool) { var el = document.getElementById(id); if (el) el.checked = bool; }
-function _clearField(id) { _setVal(id, ''); }
-function _fmtSize(bytes) {
-  if (bytes < 1024) return bytes + ' B';
-  if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
-  return (bytes / 1048576).toFixed(1) + ' MB';
+/* ================================================================
+   SLIDERS
+   ================================================================ */
+function setupSlider(sliderId, valId) {
+  const slider = document.getElementById(sliderId);
+  const valEl = document.getElementById(valId);
+  if (!slider || !valEl) return;
+  slider.addEventListener('input', () => {
+    valEl.textContent = slider.value + '%';
+  });
 }
+
+/* ================================================================
+   HELPERS DOM
+   ================================================================ */
+function _getVal(id) { const el = document.getElementById(id); return el ? el.value : ''; }
+function _setVal(id, val) { const el = document.getElementById(id); if (el) el.value = val; }
+function _setText(id, txt) { const el = document.getElementById(id); if (el) el.textContent = txt; }
+function _setChecked(id, bool) { const el = document.getElementById(id); if (el) el.checked = bool; }
+function _clearField(id) { _setVal(id, ''); }
 function _esc(str) {
-  return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
 }

@@ -4,17 +4,41 @@ Este documento registra as alterações realizadas no projeto ao longo do desenv
 
 ---
 
-## 2026-06-05 02:00
-
-### Alterações Gerais
+## 2026-06-05 23:10
 
 **Adicionado**
 
-* Adicionado funções adicionais para futura re-imprementação do microfone
+* Toda a estruturas de todas as telas finalizadas
+* Monitoramento do microfone re-adicionado na nova versão
+* Armazenamento de áudios por banco de dados local criado por JavaScript IndexedDB
+* Sistema de perfis adicionado
+* Deslizadores atualizando sua variáveis
+* Adição de áudio re-adicionado na nova versão
+* Implementado as funcionalidades da tela gatilhos
 
 **Modificado**
 
 * Estilização da tela de configurações finalizada
+* Padronizado tela de adicionar áudio para ter o mesmo estilo estrutural das outras telas
+* Áudios agora são guardados no IndexedDB, não mais no localStorage
+* Melhoria na atualização forçada pela barra de navegação na telas
+* Melhoria em funções ajudantes
+* Melhoria em função modal
+* Melhoria no toast
+
+**Implementação incompleta**
+
+* Funcionalidades da tela historico
+
+**Removido**
+
+* Funções antigas relacionadas ao fone bluetooth
+* Alink ao arquivo de testes
+
+**Preparado para futura implementação**
+
+* Estilização total da tela gatilhos
+* Estilização total da tela histórico
 
 <br>
 
@@ -29,6 +53,11 @@ Este documento registra as alterações realizadas no projeto ao longo do desenv
 **Modificado**
 
 * Formato do estado global interno atualizado.
+
+**Preparado para futuras implementações**
+
+* Perfis
+* Notificações verdadeiras no Android
 
 ### Interface e Estilização
 
