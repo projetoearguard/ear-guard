@@ -4,29 +4,28 @@
    SONS INTEGRADOS
    ================================================================ */
 const DEFAULT_AUDIOS_CATALOG = [
-  { id: 'white',  name: 'Ruido Branco', icon: 'noise',     desc: "Tom neutro suave",          file: 'white.mp3',  dbMin: 0, dbMax: 5,   referenceDb: 20 },
-  { id: 'pink',   name: 'Ruido Rosa',   icon: 'softNoise', desc: "Espectro natural calmante", file: 'pink.mp3',   dbMin: 6, dbMax: 10,  referenceDb: 20 },
-  { id: 'rain',   name: 'Chuva',        icon: 'rain',      desc: "Gotas ritmadas",            file: 'rain.mp3',   dbMin: 11, dbMax: 15, referenceDb: 20 },
-  { id: 'forest', name: 'Floresta',     icon: 'forest',    desc: "Sons da natureza",          file: 'forest.mp3', dbMin: 16, dbMax: 20, referenceDb: 20 },
-  { id: '432hz',  name: '432 Hz',       icon: 'tone',      desc: "Tom de relaxamento",        file: '432hz.mp3',  dbMin: 21, dbMax: 25, referenceDb: 20 },
-  { id: '528hz',  name: '528 Hz',       icon: 'spark',     desc: "Tom de regeneração",        file: '528hz.mp3',  dbMin: 26, dbMax: 30, referenceDb: 20 },
-  //{ id: '40hz',   name: '40 Hz Gamma',  icon: 'brain',     desc: "Estimulação cognitiva",     file: '40hz.mp3',   dbMin: 31, dbMax: 35, referenceDb: 20 },
-  { id: 'ocean',  name: 'Ondas do Mar', icon: 'ocean',     desc: "Ondas ritmadas",            file: 'ocean.mp3',  dbMin: 31, dbMax: 35, referenceDb: 20 },
-  { id: 'piano',  name: 'Piano Calmo',  icon: 'piano',     desc: "Piano calmo",               file: 'piano.mp3',  dbMin: 36, dbMax: 40, referenceDb: 20 },
+  { id: 'white', name: 'Ruido Branco', icon: 'noise', desc: "Tom neutro suave", file: 'white.mp3', dbMin: 0, dbMax: 5 },
+  { id: 'pink', name: 'Ruido Rosa', icon: 'softNoise', desc: "Espectro natural calmante", file: 'pink.mp3', dbMin: 6, dbMax: 10 },
+  { id: 'rain', name: 'Chuva', icon: 'rain', desc: "Chuva suave", file: 'rain.mp3', dbMin: 11, dbMax: 15 },
+  { id: 'forest', name: 'Floresta', icon: 'forest', desc: "Sons da natureza", file: 'forest.mp3', dbMin: 16, dbMax: 20 },
+  { id: '432hz', name: '432 Hz', icon: 'tone', desc: "Tom de relaxamento", file: '432hz.mp3', dbMin: 21, dbMax: 25 },
+  { id: '528hz', name: '528 Hz', icon: 'spark', desc: "Tom de regeneração", file: '528hz.mp3', dbMin: 26, dbMax: 30 },
+  { id: 'ocean', name: 'Ondas do Mar', icon: 'ocean', desc: "Ondas tranquilas", file: 'ocean.mp3', dbMin: 31, dbMax: 35 },
+  { id: 'piano', name: 'Piano Calmo', icon: 'piano', desc: "Piano calmo", file: 'piano.mp3', dbMin: 36, dbMax: 40 },
 ];
 
 const DEFAULT_TRIGGERING_CATALOG = [
-  { id: 'babycry',    name: 'Bebê chorando',         desc: 'Um bebê chorando',                                    file: 'babycrying.mp3',    db: 50},
-  { id: 'drill',      name: 'Furadeira',             desc: 'Som de uma furadeira em funcionamento',               file: 'drill.mp3',         db: 50},
-  { id: 'fireworks',  name: 'Fogos de artifício',    desc: 'Explosões de fogos de artifício durante comemoração', file: 'fireworks.mp3',     db: 50},
-  { id: 'hairdryer',  name: 'Secador de cabelo',     desc: 'Som de secador de cabelo em funcionamento',           file: 'hairdryer.mp3',     db: 50},
-  { id: 'alarm',      name: 'Alarme',                desc: 'Alarme de desastre natural',                          file: 'mgalarm.mp3',       db: 50},
-  { id: 'talking',    name: 'Pessoas falando',       desc: 'Sons de pessoas falando',                             file: 'peopletalking.mp3', db: 50},
-  { id: 'restaurant', name: 'Restaurante',           desc: 'Sons de pessoas falando e comendo em um restaurante', file: 'restaurant.mp3',    db: 50},
-  { id: 'subway',     name: 'Metrô',                 desc: 'Sons de uma estação de metrô',                        file: 'spsubway.mp3',      db: 50},
-  { id: 'static',     name: 'Estática de televisão', desc: 'Som de estática de televisão',                        file: 'static.mp3',        db: 50},
-  { id: 'traffic',    name: 'Tráfego',               desc: 'Som de carros em uma rua',                            file: 'traffic.mp3',       db: 50},
-  { id: 'streets',    name: 'Ruas urbanas',          desc: 'Som atravessando uma rua urbana',                     file: 'urbanstreet.mp3',   db: 50},
+  { id: 'babycry', name: 'Bebê chorando', desc: 'Um bebê chorando', file: 'babycrying.mp3', db: 50 },
+  { id: 'drill', name: 'Furadeira', desc: 'Som de uma furadeira', file: 'drill.mp3', db: 50 },
+  { id: 'fireworks', name: 'Fogos de artifício', desc: 'Explosões de fogos de artifício', file: 'fireworks.mp3', db: 50 },
+  { id: 'hairdryer', name: 'Secador de cabelo', desc: 'Som de secador de cabelo', file: 'hairdryer.mp3', db: 50 },
+  { id: 'alarm', name: 'Alarme', desc: 'Alarme de desastre natural', file: 'mgalarm.mp3', db: 50 },
+  { id: 'talking', name: 'Pessoas falando', desc: 'Sons de pessoas falando', file: 'peopletalking.mp3', db: 50 },
+  { id: 'restaurant', name: 'Restaurante', desc: 'Sons de pessoas falando e comendo', file: 'restaurant.mp3', db: 50 },
+  { id: 'subway', name: 'Metrô urbano', desc: 'Sons de uma estação de metrô', file: 'spsubway.mp3', db: 50 },
+  { id: 'static', name: 'Estática de televisão', desc: 'Som de estática de televisão', file: 'static.mp3', db: 50 },
+  { id: 'traffic', name: 'Tráfego urbano', desc: 'Som de carros em uma rua', file: 'traffic.mp3', db: 50 },
+  { id: 'streets', name: 'Ruas urbanas', desc: 'Som atravessando uma rua urbana', file: 'urbanstreet.mp3', db: 50 },
 ]
 
 function audioIconSVG(iconName) {
@@ -49,11 +48,11 @@ function audioIconSVG(iconName) {
    PERFIS
    ================================================================ */
 const BUILTIN_PROFILES = {
-  home:      { id: 'home',      name: 'Casa',       sensitivity: 'low',  cooldownFactor: 1.0, debounceFactor: 1.1, thresholdDelta: 0,   dbOffsetDelta: 0 },
-  school:    { id: 'school',    name: 'Escola',     sensitivity: 'mid',  cooldownFactor: 0.9, debounceFactor: 1.0, thresholdDelta: -2,  dbOffsetDelta: -1 },
-  work:      { id: 'work',      name: 'Trabalho',   sensitivity: 'mid',  cooldownFactor: 1.0, debounceFactor: 1.0, thresholdDelta: 2,   dbOffsetDelta: 0 },
-  transport: { id: 'transport', name: 'Transporte', sensitivity: 'high', cooldownFactor: 0.7, debounceFactor: 0.7, thresholdDelta: -6,  dbOffsetDelta: -2 },
-  sleep:     { id: 'sleep',     name: 'Sono',       sensitivity: 'low',  cooldownFactor: 1.8, debounceFactor: 1.6, thresholdDelta: -10, dbOffsetDelta: 1 },
+  home: { id: 'home', name: 'Casa', sensitivity: 'low', cooldownFactor: 1.0, debounceFactor: 1.1, thresholdDelta: 0, dbOffsetDelta: 0 },
+  school: { id: 'school', name: 'Escola', sensitivity: 'mid', cooldownFactor: 0.9, debounceFactor: 1.0, thresholdDelta: -2, dbOffsetDelta: -1 },
+  work: { id: 'work', name: 'Trabalho', sensitivity: 'mid', cooldownFactor: 1.0, debounceFactor: 1.0, thresholdDelta: 2, dbOffsetDelta: 0 },
+  transport: { id: 'transport', name: 'Transporte', sensitivity: 'high', cooldownFactor: 0.7, debounceFactor: 0.7, thresholdDelta: -6, dbOffsetDelta: -2 },
+  sleep: { id: 'sleep', name: 'Sono', sensitivity: 'low', cooldownFactor: 1.8, debounceFactor: 1.6, thresholdDelta: -10, dbOffsetDelta: 1 },
 };
 
 const DEFAULT_PROFILE_BASE = {
@@ -67,15 +66,15 @@ const DEFAULT_PROFILE_BASE = {
 const CALIBRATION_SEQUENCE = DEFAULT_TRIGGERING_CATALOG.map((item) => ({
   id: item.id,
   name: item.name,
-  db: item.referenceDb,
+  db: item.db,
   icon: item.icon,
-  file: 'static/audios/triggering/'+item.file
+  file: 'static/audios/triggering/' + item.file
 }));
 
 const SENSITIVITY_CONFIG = {
-  low:  { smoothing: 0.95, offsetMult: 0.8, cooldown: 5 },
-  mid:  { smoothing: 0.85, offsetMult: 1.0, cooldown: 3 },
-  hidh: { smoothing: 0.70, offsetMult: 1.2, cooldown: 1 },
+  low: { smoothing: 0.95, offsetMult: 0.8, cooldown: 5 },
+  mid: { smoothing: 0.85, offsetMult: 1.0, cooldown: 3 },
+  high: { smoothing: 0.70, offsetMult: 1.2, cooldown: 1 },
 };
 
 /* ================================================================
@@ -94,6 +93,7 @@ const state = {
   profileBase: { ...DEFAULT_PROFILE_BASE },
   profileOverrides: {},
   customProfiles: [],
+  useAudioSupressors: false,
 
   // Runtime
   audios: [],   // { id, name, isDefault, src (objectURL ou path), storedKey, volume, icon }
@@ -126,8 +126,8 @@ const state = {
   calibrationResponses: [],
 
   // Desenvolvimento
-  debugMode: true,
-  software: '0.9.0.260604.1753b0',
+  debugMode: false,
+  software: '0.9.0.260606.2008b0',
 };
 
 /* ================================================================
@@ -177,7 +177,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   setupSlider('trigger-vol-slider', 'trigger-vol-val');
   setupSlider('edit-vol-slider', 'edit-vol-val');
 
-  showScreen('triggers');
+  showScreen('home');
   _setText('footer-sv', state.software);
 });
 
@@ -217,7 +217,7 @@ function idbPut(id, blob) {
 }
 
 function idbGet(id) {
-  return new Promise ((res) => {
+  return new Promise((res) => {
     if (!_idb) return res(null);
     const tx = _idb.transaction('audios', 'readonly');
     const req = tx.objectStore('audios').get(id);
@@ -266,6 +266,7 @@ function saveAudioMeta() {
     id: a.id,
     name: a.name,
     isDefault: a.isDefault,
+    src: a.src,
     storedKey: a.storedKey,
     volume: a.volume,
     icon: a.icon,
@@ -303,12 +304,12 @@ function loadConfig() {
     _setVal('cal-offset-input', state.dbOffset);
     _setVal('noise-notify-threshold', state.noiseNotifyThreshold);
     _setChecked('notify-trigger-toggle', state.notifyOnTrigger);
-  
+
     // Sensibilidade
     document.querySelectorAll('.sens-btn').forEach(b => {
       b.classList.toggle('active', b.dataset.val === state.sensitivity);
     })
-  } catch (e) {}
+  } catch (e) { }
 }
 
 function saveConfig() {
@@ -539,13 +540,13 @@ async function _initMic() {
   try {
     _micStream = await navigator.mediaDevices.getUserMedia({
       audio: {
-        echoCancellation: false,
-        noiseSuppression: false,
+        echoCancellation: state.useAudioSupressors,
+        noiseSuppression: state.useAudioSupressors,
         autoGainControl: false,
         channelCount: 1,
       }
     });
-    
+
     _audioCtxMic = new (window.AudioContext || window.webkitAudioContext)();
     _analyser = _audioCtxMic.createAnalyser();
     _analyser.fftSize = 2048;
@@ -674,7 +675,7 @@ function _startDbLoop() {
     const calDisplay = document.getElementById('cal-db-live');
     if (calDisplay && document.getElementById('screen-calibration').classList.contains('active')) calDisplay.textContent = db;
   };
-  
+
   tick();
 }
 
@@ -713,7 +714,7 @@ function updateDbUI(db) {
     state.sessionMaxDb = db;
     _setText('stat-max', db);
   }
-  const avg = Math.round(state.sessionDbValues.reduce((a,b) => a+b, 0) / state.sessionDbValues.length);
+  const avg = Math.round(state.sessionDbValues.reduce((a, b) => a + b, 0) / state.sessionDbValues.length);
   _setText('stat-avg', avg);
 
   // Salva em histórico global
@@ -769,23 +770,101 @@ function playAudioById(audioId, volume) {
 }
 
 function _fadeVolume(el, from, to, duration) {
-  return;
+  const steps = 20;
+  const interval = duration / steps;
+  const delta = (to - from) / steps;
+  let current = from;
+  let count = 0;
+  const timer = setInterval(() => {
+    current += delta;
+    count++;
+    if (el) el.volume = _clamp(current, 0, 1);
+    if (count >= steps) clearInterval(timer);
+  }, interval);
 }
 
 function _stopAudio(fade = false) {
-  return;
+  if (_audioEl) {
+    if (fade) {
+      _fadeVolume(_audioEl, _audioEl.volume, 0, 600);
+      setTimeout(() => {
+        if (_audioEl) {
+          _audioEl.pause();
+          _audioEl.src = '';
+          _audioEl = null;
+        }
+      }, 650);
+    } else {
+      _audioEl.pause();
+      _audioEl.src = '';
+      _audioEl = null;
+    }
+  }
+  state.isPlaying = false;
 }
 
 function stopAudioManual() {
-  return;
+  _stopAudio(true);
+  state.currentAudioId = null;
+  _currentTriggerAudioId = null;
+  setTimeout(() => {
+    updateNowPlayingUI();
+    renderAudioList();
+  }, 700);
 }
 
 function togglePlayPause() {
-  return;
+  if (!state.currentAudioId && state.audios.length > 0) {
+    playAudioById(state.audios[0].id);
+    return;
+  }
+  if (!state.currentAudioId) {
+    showToast('Nenhum áudio na biblioteca', 'info');
+    return;
+  }
+  if (!_audioEl) {
+    playAudioById(state.currentAudioId);
+    return;
+  }
+  if (state.isPlaying) {
+    _audioEl.pause();
+    state.isPlaying = false;
+  } else {
+    _audioEl.play().then(() => {
+      state.isPlaying = true;
+      updateNowPlayingUI();
+      renderAudioList();
+    }).catch(() => showToast('Toque a tela primeiro', 'warn'));
+    return;
+  }
+  updateNowPlayingUI();
+  renderAudioList();
 }
 
 function updateNowPlayingUI() {
-  return;
+  const a = state.currentAudioId ? state.audios.find(x => x.id === state.currentAudioId) : null;
+  const card = document.getElementById('now-playing-card');
+
+  _setText('np-title', a ? a.name : 'Nenhum áudio ativo');
+  _setText('np-meta', a ? (a.fileName || 'Áudio integrado') : 'Aguardando gatilho...');
+
+  if (!a) {
+    const bar = document.getElementById('np-progress');
+    if (bar) bar.style.width = '0%';
+  }
+
+  const icon = document.getElementById('icon-playpause');
+  if (icon) {
+    icon.innerHTML = state.isPlaying
+      ? '<rect x="6" y="4" width="4" height="16" rx="1" fill="currentColor"/><rect x="14" y="4" width="4" height="16" rx="1" fill="currentColor"/>'
+      : '<path d="M8 5v14l11-7z" fill="currentColor"/>';
+  }
+
+  if (card) card.classList.toggle('playing', state.isPlaying);
+
+  const thumb = document.getElementById('np-thumb');
+  if (thumb && a && a.icon) thumb.innerHTML = audioIconSVG(a.icon);
+  else if (thumb) thumb.innerHTML = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M9 18V6l12-3v12M9 18c0 1.1-.9 2-2 2s-2-.9-2-2 .9-2 2-2 2 .9 2 2zm12-3c0 1.1-.9 2-2 2s-2-.9-2-2 .9-2 2-2 2 .9 2 2z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
 }
 
 /* ================================================================
@@ -831,47 +910,186 @@ function applyProfile(key) {
    ================================================================ */
 
 function saveMonitorConfig() {
-  return;
+  const cooldown = parseInt(_getVal('cooldown-input'));
+  const debounce = parseInt(_getVal('debounce-input'));
+  const offset = parseInt(_getVal('offset-input'));
+  if (isNaN(cooldown) || isNaN(debounce) || isNaN(offset)) {
+    showToast('Valores inválidos', 'error');
+    return;
+  }
+  state.cooldown = Math.max(0, Math.min(60, cooldown));
+  state.debounce = Math.max(100, Math.min(5000, debounce));
+  state.dbOffset = Math.max(-30, Math.min(30, offset));
+  _setVal('cal-offset-input', state.dbOffset);
+  saveConfig();
+  showToast('Configurações salvas', 'success');
 }
 
 function saveNotifyConfig() {
-  return;
+  const threshold = parseInt(_getVal('noise-notify-threshold'));
+  if (isNaN(threshold)) {
+    showToast('Valor inválido', 'error');
+    return;
+  }
+  state.noiseNotifyThreshold = _clamp(threshold, 0, 200);
+  state.notifyOnTrigger = document.getElementById('notify-trigger-toggle').checked;
+  saveConfig();
+  requestNotificationPermission();
+  showToast('Configurações salvas', 'success');
 }
 
 function renderNotificationPreviewOptions() {
-  return;
+  const select = document.getElementById('notify-preview-audio');
+  if (!select) return;
+  select.innerHTML = CALIBRATION_SEQUENCE.map(step => (
+    `<option value="${step.id}">${_esc(step.name)} · ${step.db} dB</option>`
+  )).join('');
+  if (!select.value && CALIBRATION_SEQUENCE[0]) select.value = CALIBRATION_SEQUENCE[0].id;
 }
 
 function playNotifyPreview() {
-  return;
+  const stepId = _getVal('notify-preview-audio');
+  const step = CALIBRATION_SEQUENCE.find(item => item.id === stepId) || CALIBRATION_SEQUENCE[0];
+  if (!step) return;
+  if (_previewEl) {
+    _previewEl.pause();
+    _previewEl = null;
+  }
+  _previewEl = new Audio(step.file);
+  _previewEl.volume = 0.8;
+  _previewEl.play().catch(() => { });
 }
 
 function saveCalibration() {
-  return;
+  const offset = parseInt(_getVal('cal-offset-input'));
+  if (isNaN(offset)) {
+    showToast('Valor inválido', 'error');
+    return;
+  }
+  state.dbOffset = Math.max(-30, Math.min(30, offset));
+  _setVal('offset-input', state.dbOffset);
+  saveConfig();
+  showToast('Offset salvo: ' + (state.dbOffset >= 0 ? '+' : '') + state.dbOffset + ' dB', 'success');
 }
 
 function startCalibrationFlow() {
-  return;
+  state.calibrationIndex = 0;
+  state.calibrationResponses = [];
+  renderCalibrationStep();
+  showScreen('calibration');
 }
 
 function renderCalibrationStep() {
-  return;
+  const step = CALIBRATION_SEQUENCE[state.calibrationIndex];
+  const total = CALIBRATION_SEQUENCE.length;
+  const progress = document.getElementById('calibration-progress');
+  const name = document.getElementById('calibration-audio-name');
+  const db = document.getElementById('calibration-audio-db');
+  const desc = document.getElementById('calibration-audio-desc');
+  const counter = document.getElementById('calibration-counter');
+  const rating = state.calibrationResponses[state.calibrationIndex]?.rating || 0;
+
+  if (!step) {
+    if (progress) progress.textContent = 'Pronto';
+    if (name) name.textContent = 'Finalizado';
+    if (db) db.textContent = '';
+    if (desc) desc.textContent = 'Ajustes aplicados ao app.';
+    if (counter) counter.textContent = `${total}/${total}`;
+    _setText('calibration-step-help', 'Sua configuração foi aplicada. Você pode refazer quando quiser.');
+    const nextBtn = document.getElementById('calibration-next-btn');
+    if (nextBtn) {
+      nextBtn.textContent = 'Reiniciar ajuste';
+      nextBtn.onclick = startCalibrationFlow;
+    }
+    return;
+  }
+
+  if (progress) progress.textContent = `${state.calibrationIndex + 1}/${total}`;
+  if (name) name.textContent = step.name;
+  if (db) db.textContent = `${step.db} dB de referência`;
+  if (desc) desc.textContent = 'Toque o áudio e marque o nível de incômodo.';
+  if (counter) counter.textContent = `${state.calibrationIndex + 1}/${total}`;
+  _setText('calibration-step-help', 'Escolha o quanto esse som incomoda você.');
+  const nextBtn = document.getElementById('calibration-next-btn');
+  if (nextBtn) {
+    nextBtn.textContent = state.calibrationIndex === total - 1 ? 'Finalizar ajuste' : 'Próximo';
+    nextBtn.onclick = nextCalibrationStep;
+  }
+  document.querySelectorAll('.calibration-rating-btn').forEach(btn => {
+    btn.classList.toggle('active', parseInt(btn.dataset.rating) === rating);
+  });
 }
 
 function playCalibrationStep() {
-  return;
+  const step = CALIBRATION_SEQUENCE[state.calibrationIndex];
+  if (!step) return;
+  if (_previewEl) {
+    _previewEl.pause();
+    _previewEl = null;
+  }
+  _previewEl = new Audio(step.file);
+  _previewEl.volume = 0.85;
+  _previewEl.play().catch(() => { });
 }
 
 function setCalibrationRating(rating) {
-  return;
+  state.calibrationResponses[state.calibrationIndex] = {
+    ...CALIBRATION_SEQUENCE[state.calibrationIndex],
+    rating,
+    timestamp: Date.now(),
+  };
+  renderCalibrationStep();
 }
 
 function nextCalibrationStep() {
-  return;
+  const step = CALIBRATION_SEQUENCE[state.calibrationIndex];
+  if (!step) return;
+  if (!state.calibrationResponses[state.calibrationIndex]) {
+    showToast('Marque um nível de incômodo antes de avançar', 'warn');
+    return;
+  }
+  if (state.calibrationIndex >= CALIBRATION_SEQUENCE.length - 1) {
+    finishCalibrationFlow();
+    return;
+  }
+  state.calibrationIndex += 1;
+  renderCalibrationStep();
 }
 
 function finishCalibrationFlow() {
-  return;
+  const responses = state.calibrationResponses.filter(Boolean);
+  if (responses.length === 0) {
+    showToast('Ouça e avalie pelo menos um áudio', 'warn');
+    return;
+  }
+  const averageRating = responses.reduce((sum, item) => sum + item.rating, 0) / responses.length;
+  const averageDb = responses.reduce((sum, item) => sum + item.db, 0) / responses.length;
+  const sensitivity = averageRating >= 3.8 ? 'high' : averageRating >= 2.6 ? 'mid' : 'low';
+  state.profileBase = {
+    sensitivity,
+    cooldown: _clamp(Math.round(6 - averageRating), 1, 12),
+    debounce: _clamp(Math.round(1500 - (averageRating * 220)), 300, 4000),
+    noiseNotifyThreshold: _clamp(Math.round(averageDb + (5 - averageRating) * 6), 30, 120),
+    dbOffset: _clamp(Math.round((averageRating - 3) * 2), -12, 12),
+  };
+  state.sensitivity = state.profileBase.sensitivity;
+  state.cooldown = state.profileBase.cooldown;
+  state.debounce = state.profileBase.debounce;
+  state.noiseNotifyThreshold = state.profileBase.noiseNotifyThreshold;
+  state.dbOffset = state.profileBase.dbOffset;
+  state.activeProfile = null;
+  state.calibrationIndex = CALIBRATION_SEQUENCE.length;
+  _setVal('cooldown-input', state.cooldown);
+  _setVal('debounce-input', state.debounce);
+  _setVal('offset-input', state.dbOffset);
+  _setVal('noise-notify-threshold', state.noiseNotifyThreshold);
+  document.querySelectorAll('.sens-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.val === state.sensitivity);
+  });
+  saveConfig();
+  renderProfilesManager();
+  renderCalibrationStep();
+  showToast('Ajuste aplicado ao app', 'success');
 }
 
 /* ================================================================
@@ -887,40 +1105,109 @@ function sendNotification(text) {
   if (Notification.permission !== 'granted') return;
   try {
     new Notification('EarGuard', { body: text, icon: '' });
-  } catch(e) {}
+  } catch (e) { }
 }
 
 /* ================================================================
    HISTÓRICO
    ================================================================ */
 function addHistoryEvent(type, text, db, meta = {}) {
-  return;
+  const event = {
+    type,
+    text,
+    db,
+    timestamp: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
+    ...meta,
+  };
+  state.history.unshift(event);
+  if (state.history.length > 100) state.history.pop();
+  renderHistoryEvents();
+  saveHistoryToStorage();
 }
 
 function renderHistoryEvents() {
-  return;
+  const container = document.getElementById('history-events-list');
+  if (!container) return;
+  if (state.history.length === 0) {
+    container.innerHTML = '<div class="empty-state sm"><p>Nenhum evento registrado</p></div>';
+    return;
+  }
+  container.innerHTML = state.history.slice(0, 30).map(e => `
+    <div class="history-event ${e.type === 'session' ? 'session' : ''}">
+      <div class="event-dot ${e.type === 'warn' ? 'warn' : e.type === 'success' ? 'success' : e.type === 'danger' ? 'danger' : e.type === 'session' ? 'session' : ''}"></div>
+      <div class="event-info">
+        <div class="event-text">${_esc(e.text)}${e.range ? ' · ' + _esc(e.range) : e.db ? ' (' + e.db + ' dB)' : ''}</div>
+        <div class="event-time">${e.timestamp}</div>
+      </div>
+    </div>
+  `).join('');
 }
 
 function clearHistory() {
-  return;
+  state.history = [];
+  state.dbStat = { max: null, avg: null, triggerCount: 0 };
+  state.sessionWindows = [];
+  saveHistoryToStorage();
+  renderHistoryEvents();
+  updateStatsUI();
+  showToast('Histórico apagado', 'info');
 }
 
 function updateStatsUI() {
-  return;
+  // Usa stats de sessão se disponíveis, senão globais
+  const max = state.sessionMaxDb !== null ? state.sessionMaxDb : state.dbStat.max;
+  const avg = state.sessionDbValues.length > 0
+    ? Math.round(state.sessionDbValues.reduce((a, b) => a + b, 0) / state.sessionDbValues.length)
+    : null;
+
+  _setText('stat-max', max !== null ? max : '--');
+  _setText('stat-avg', avg !== null ? avg : '--');
+  _setText('stat-triggers', state.sessionTriggerCount || state.dbStat.triggerCount || 0);
 }
 
 function _timeLabel(timestamp) {
-  return;
+  return new Date(timestamp).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
 }
 
 function _captureSessionWindowSample(db) {
-  return;
+  if (!state.currentWindow) {
+    state.currentWindow = { start: Date.now(), samples: [] };
+  }
+  state.currentWindow.samples.push(db);
+  state.currentWindow.last = Date.now();
+
+  const elapsed = Date.now() - state.currentWindow.start;
+  if (elapsed >= 30 * 60 * 1000 && state.currentWindow.samples.length >= 3) {
+    _finalizeSessionWindow(false);
+    state.currentWindow = { start: Date.now(), samples: [db] };
+  }
 }
 
 function _finalizeSessionWindow(isClosingSession) {
-  return;
+  if (!state.currentWindow || !state.currentWindow.samples || state.currentWindow.samples.length === 0) return;
+  const samples = state.currentWindow.samples;
+  const start = state.currentWindow.start;
+  const end = state.currentWindow.last || Date.now();
+  const average = Math.round(samples.reduce((sum, value) => sum + value, 0) / samples.length);
+  const min = Math.min(...samples);
+  const max = Math.max(...samples);
+  const summary = {
+    type: 'session',
+    text: `${_timeLabel(start)} ~ ${_timeLabel(end)} · média ${average} dB`,
+    db: average,
+    timestamp: _timeLabel(end),
+    range: `${min}–${max} dB`,
+    start,
+    end,
+    average,
+  };
+  state.sessionWindows.push(summary);
+  state.dbStat.avg = average;
+  state.dbStat.triggerCount = state.sessionTriggerCount || state.dbStat.triggerCount || 0;
+  addHistoryEvent('session', summary.text, average, { range: summary.range, start, end, average });
+  saveHistoryToStorage();
+  state.currentWindow = isClosingSession ? null : state.currentWindow;
 }
-
 
 /* ================================================================
    GATILHOS
@@ -958,6 +1245,8 @@ function _checkTriggers(db) {
 
 function _activateTrigger(trigger, db) {
   const audio = state.audios.find(a => a.id === trigger.audioId);
+
+  console.log(JSON.stringify(state.audios, null, 2));
   if (!audio) return;
 
   const vol = (trigger.volume || 100) / 100;
@@ -1240,7 +1529,11 @@ function addDefaultAudio(defId) {
     return;
   }
 
-  const src = 'static/audios/' + (def.file || defId+'.mp3');
+  console.log(def.file, defId);
+
+  const src = './static/audios/' + (def.file || defId + '.mp3');
+
+  console.log(src);
 
   state.audios.push({
     id: def.id,
@@ -1376,7 +1669,8 @@ function openEditVolumeModal() {
   const slider = document.getElementById('edit-vol-slider');
   if (slider) {
     slider.value = vol;
-    _setText('edit-vol-val', vol + '%');}
+    _setText('edit-vol-val', vol + '%');
+  }
   openModal('modal-edit-volume');
 }
 
@@ -1410,133 +1704,6 @@ async function removeAudio() {
   renderDefaultGrid();
   closeModal('modal-audio-options');
   showToast('Áudio removido', 'info');
-}
-
-/* ----------------------------------------------------------------
-   Reprodução
-   ---------------------------------------------------------------- */
-function _checkTriggers(db) {
-  if (state.isPlaying) return;
-  for (var i = 0; i < state.audios.length; i++) {
-    var a = state.audios[i];
-    if (a.dbMin !== null && a.dbMax !== null && db >= a.dbMin && db <= a.dbMax) {
-      if (state.currentAudioIndex !== i) playAudio(i);
-      return;
-    }
-  }
-}
-
-function playAudio(index) {
-  if (index < 0 || index >= state.audios.length) return;
-  if (_audioCtx && _audioCtx.state === 'suspended') _audioCtx.resume();
-  var a = state.audios[index];
-  _stopAudio();
-
-  _audioEl = new Audio();
-  _audioEl.src = a.src;
-  _audioEl.loop = true;
-
-  _audioEl.addEventListener('timeupdate', function () {
-    if (!_audioEl || !_audioEl.duration || _audioEl.loop) return;
-    var bar = document.getElementById('np-progress');
-    if (bar) bar.style.width = (_audioEl.currentTime / _audioEl.duration * 100) + '%';
-  });
-  _audioEl.addEventListener('ended', function () {
-    if (_audioEl && !_audioEl.loop) {
-      state.isPlaying = false;
-      renderAudioList();
-      updateNowPlayingUI();
-    }
-  });
-  _audioEl.addEventListener('error', function () {
-    showToast('Erro ao carregar: ' + a.file, 'error');
-    state.isPlaying = false;
-    updateNowPlayingUI();
-  });
-
-  var promise = _audioEl.play();
-  if (promise !== undefined) {
-    promise.then(function () {
-      state.currentAudioIndex = index;
-      state.isPlaying = true;
-      updateNowPlayingUI();
-      renderAudioList();
-    }).catch(function () {
-      state.currentAudioIndex = index;
-      state.isPlaying = false;
-      updateNowPlayingUI();
-      renderAudioList();
-      showToast('Toque play para iniciar o audio', 'info');
-    });
-  } else {
-    state.currentAudioIndex = index;
-    state.isPlaying = true;
-    updateNowPlayingUI();
-    renderAudioList();
-  }
-}
-
-function _stopAudio() {
-  if (_audioEl) {
-    _audioEl.pause();
-    _audioEl.src = '';
-    _audioEl = null;
-  }
-  state.isPlaying = false;
-}
-
-function togglePlayPause() {
-  if (_audioCtx && _audioCtx.state === 'suspended') _audioCtx.resume();
-  if (state.currentAudioIndex === null) {
-    if (state.audios.length > 0) playAudio(0);
-    else showToast('Nenhum audio disponivel', 'info');
-    return;
-  }
-  if (!_audioEl) {
-    playAudio(state.currentAudioIndex);
-    return;
-  }
-  if (state.isPlaying) {
-    _audioEl.pause();
-    state.isPlaying = false;
-  } else {
-    _audioEl.play().then(function () {
-      state.isPlaying = true;
-      updateNowPlayingUI();
-      renderAudioList();
-    }).catch(function () {
-      showToast('Toque a tela primeiro para permitir audio', 'warn');
-    });
-    return;
-  }
-  updateNowPlayingUI(); renderAudioList();
-}
-
-function restartAudio() {
-  if (_audioCtx && _audioCtx.state === 'suspended') _audioCtx.resume();
-  if (_audioEl) {
-    _audioEl.currentTime = 0;
-    _audioEl.play().catch(function () { });
-    state.isPlaying = true;
-  } else if (state.currentAudioIndex !== null) { playAudio(state.currentAudioIndex); }
-  updateNowPlayingUI();
-}
-
-function updateNowPlayingUI() {
-  var a = state.currentAudioIndex !== null ? state.audios[state.currentAudioIndex] : null;
-  _setText('np-title', a ? a.name : 'Nome do áudio');
-  _setText('np-meta', a ? a.file : 'Faixa em Decibéis');
-  _setText('np-db-range', a && a.dbMin !== null ? a.dbMin + ' dB \u2014 ' + a.dbMax + ' dB' : '-- dB \u2014 -- dB');
-  if (!a) {
-    var bar = document.getElementById('np-progress');
-    if (bar) bar.style.width = '0%';
-  }
-  var icon = document.getElementById('icon-playpause');
-  if (icon) {
-    icon.innerHTML = state.isPlaying
-      ? '<path d="M6 4h4v16H6zM14 4h4v16h-4z" fill="currentColor"/>'
-      : '<path d="M8 5v14l11-7z" fill="currentColor"/>';
-  }
 }
 
 /* ================================================================
