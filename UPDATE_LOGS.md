@@ -4,6 +4,14 @@ Este documento registra as alterações realizadas no projeto ao longo do desenv
 
 ---
 
+## 2026-06-06 19:30
+
+**Adicionado**
+
+* Tela de calibração
+* Estilos finais para as telas: gatilho e histórico
+* Audio player totalmente re-integrado ao aplicativo
+
 ## 2026-06-05 23:10
 
 **Adicionado**
@@ -37,8 +45,7 @@ Este documento registra as alterações realizadas no projeto ao longo do desenv
 
 **Preparado para futura implementação**
 
-* Estilização total da tela gatilhos
-* Estilização total da tela histórico
+* Estilização total das telas gatilhos e histórico
 
 <br>
 
