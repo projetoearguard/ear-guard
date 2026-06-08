@@ -1,5 +1,7 @@
 "use strict";
 
+const EarGuard = Capacitor?.Plugins?.EarGuard;
+
 /* ================================================================
    SONS INTEGRADOS
    ================================================================ */
@@ -247,6 +249,13 @@ async function loadAudiosFromDB() {
       const blob = await idbGet(meta.storedKey);
       if (blob) {
         meta.src = URL.createObjectURL(blob);
+        if (_isNativeAndroid()) {
+          try {
+            meta.nativeFileName = await saveAudioToNative(meta.id, blob, meta.fileName);
+          } catch (error) {
+            console.error('Falha ao migrar áudio para Android nativo:', error);
+          }
+        }
         result.push(meta);
       }
     }
@@ -271,8 +280,10 @@ function saveAudioMeta() {
     volume: a.volume,
     icon: a.icon,
     fileName: a.fileName,
+    nativeFileName: a.nativeFileName || null,
   }));
   localStorage.setItem('earguard_audios', JSON.stringify(meta));
+  void syncNativeConfig();
 }
 
 /* ================================================================
@@ -317,7 +328,7 @@ function saveConfig() {
     theme: state.theme,
     sensitivity: state.sensitivity,
     cooldown: state.cooldown,
-    debounce: state.cooldown,
+    debounce: state.debounce,
     dbOffset: state.dbOffset,
     noiseNotifyThreshold: state.noiseNotifyThreshold,
     notifyOnTrigger: state.notifyOnTrigger,
@@ -328,6 +339,98 @@ function saveConfig() {
     calibrationIndex: state.calibrationIndex,
     calibrationResponses: state.calibrationResponses,
   }));
+  void syncNativeConfig();
+}
+
+function _isNativeAndroid() {
+  return typeof Capacitor !== 'undefined' && Capacitor?.getPlatform?.() === 'android' && !!EarGuard;
+}
+
+function _nativeAssetPath(audio) {
+  if (!audio) return null;
+  const src = audio.src || '';
+  if (src.startsWith('./')) return src.slice(2);
+  if (src.startsWith('static/')) return src;
+  if (audio.isDefault && audio.fileName) return 'static/audios/' + audio.fileName;
+  if (audio.isDefault && audio.id) return 'static/audios/' + audio.id + '.mp3';
+  return null;
+}
+
+function buildNativeConfig() {
+  const audios = state.audios
+    .map(audio => {
+      const assetPath = _nativeAssetPath(audio);
+      if (assetPath) {
+        return {
+          id: audio.id,
+          name: audio.name,
+          assetPath,
+          volume: (audio.volume || 100) / 100,
+        };
+      }
+      if (audio.nativeFileName) {
+        return {
+          id: audio.id,
+          name: audio.name,
+          nativeFileName: audio.nativeFileName,
+          volume: (audio.volume || 100) / 100,
+        };
+      }
+      return null;
+    })
+    .filter(Boolean);
+
+  const supportedAudioIds = new Set(audios.map(audio => audio.id));
+  const triggers = state.triggers
+    .map(trigger => ({
+      id: trigger.id,
+      name: trigger.name,
+      dbMin: trigger.dbMin,
+      dbMax: trigger.dbMax,
+      audioId: trigger.audioId,
+      volume: (trigger.volume || 100) / 100,
+      enabled: trigger.enabled !== false,
+    }))
+    .filter(trigger => supportedAudioIds.has(trigger.audioId));
+
+  return {
+    sensitivity: state.sensitivity,
+    cooldown: state.cooldown,
+    debounce: state.debounce,
+    dbOffset: state.dbOffset,
+    noiseNotifyThreshold: state.noiseNotifyThreshold,
+    notifyOnTrigger: state.notifyOnTrigger,
+    audios,
+    triggers,
+  };
+}
+
+async function saveAudioToNative(audioId, blob, fileName) {
+  if (!_isNativeAndroid() || !blob) return null;
+  const arrayBuffer = await blob.arrayBuffer();
+  const bytes = new Uint8Array(arrayBuffer);
+  let binary = '';
+  const chunkSize = 0x8000;
+  for (let i = 0; i < bytes.length; i += chunkSize) {
+    binary += String.fromCharCode.apply(null, bytes.subarray(i, i + chunkSize));
+  }
+  const base64 = btoa(binary);
+  const result = await EarGuard.saveAudio({
+    audioId,
+    fileName: fileName || 'audio.mp3',
+    data: base64,
+    mimeType: blob.type || '',
+  });
+  return result?.nativeFileName || null;
+}
+
+async function syncNativeConfig() {
+  if (!_isNativeAndroid()) return;
+  try {
+    await EarGuard.configure({ config: JSON.stringify(buildNativeConfig()) });
+  } catch (error) {
+    console.error('Falha ao enviar config nativa:', error);
+  }
 }
 
 function _clamp(value, min, max) {
@@ -470,6 +573,7 @@ function loadTriggersFromStorage() {
 
 function saveTriggersToStorage() {
   localStorage.setItem('earguard_triggers', JSON.stringify(state.triggers));
+  void syncNativeConfig();
 }
 
 function loadHistoryFromStorage() {
@@ -567,12 +671,13 @@ async function _initMic() {
 async function startMonitoring() {
   if (state.monitoringActive) return;
 
-  // Verificar permissão
-  if (!_micActive) {
-    const ok = await _initMic();
-    if (!ok) {
-      document.getElementById('permission-overlay').style.display = 'flex';
-      return;
+  // Se estiver no Android, inicia o serviço nativo de background
+  if (Capacitor?.getPlatform() === 'android' && EarGuard) {
+    try {
+      await syncNativeConfig();
+      await EarGuard.start();
+    } catch (e) {
+      console.error("Erro no plugin:", e);
     }
   }
 
@@ -608,6 +713,14 @@ async function startMonitoring() {
 function stopMonitoring() {
   if (!state.monitoringActive) return;
   state.monitoringActive = false;
+
+  // Para o serviço nativo no Android
+  if (Capacitor?.getPlatform() === 'android' && EarGuard) {
+    EarGuard.stop();
+    state.currentAudioId = null;
+    state.isPlaying = false;
+  }
+
   _finalizeSessionWindow(true);
 
   if (_dbRafId) {
@@ -625,6 +738,8 @@ function stopMonitoring() {
   document.getElementById('monitor-ring').classList.remove('active');
   document.getElementById('monitor-ring').classList.remove('alert');
   document.getElementById('monitor-bar-fill').style.width = '0%';
+  updateNowPlayingUI();
+  renderAudioList();
 
   addHistoryEvent('info', 'Monitoramento pausado', null);
   showToast('Monitoramento pausado', 'info');
@@ -646,37 +761,48 @@ function resetMonitoring() {
   showToast('Monitoramento reiniciado', 'info');
 }
 
-function _startDbLoop() {
-  if (!_analyser) return;
-  const buffer = new Float32Array(_analyser.fftSize);
-  var current = -1;
+async function _startDbLoop() {
+    const tick = async () => {
+        if (!state.monitoringActive) return;
 
-  const tick = () => {
-    if (!state.monitoringActive) return;
-    _dbRafId = requestAnimationFrame(tick);
+        try {
+            // Se estiver no Android, pega do nosso Plugin
+            if (_isNativeAndroid()) {
+                const EarGuard = window.Capacitor.Plugins.EarGuard;
+                const result = await EarGuard.getStatus();
+                const db = Math.round(result?.db || 0);
+                updateDbUI(db);
+                state.currentAudioId = result?.audioId || null;
+                state.isPlaying = !!result?.playing;
+                updateNowPlayingUI();
+                renderAudioList();
 
-    _analyser.getFloatTimeDomainData(buffer);
-    let sum = 0;
-    for (let i = 0; i < buffer.length; i++) sum += buffer[i] * buffer[i];
-    const rms = Math.sqrt(sum / buffer.length);
-    const dbFS = rms > 1e-10 ? 20 * Math.log10(rms) : -100;
-    const sensOffset = (SENSITIVITY_CONFIG[state.sensitivity].offsetMult - 1) * 10;
-    const db = Math.max(0, Math.round(dbFS + 80 + state.dbOffset + sensOffset));
+            } else {
+                // Fallback para o navegador (PC/Web) usando o AnalyserNode original
+                if (_analyser) {
+                    const buffer = new Float32Array(_analyser.fftSize);
+                    _analyser.getFloatTimeDomainData(buffer);
+                    let sum = 0;
+                    for (let i = 0; i < buffer.length; i++) sum += buffer[i] * buffer[i];
+                    const rms = Math.sqrt(sum / buffer.length);
+                    const dbFS = rms > 1e-10 ? 20 * Math.log10(rms) : -100;
+                    const db = Math.max(0, Math.round(dbFS + 80 + state.dbOffset));
+                    
+                    updateDbUI(db);
+                    _checkTriggersDebounced(db);
+                }
+            }
+        } catch (error) {
+            console.error("Erro ao ler DB do plugin:", error);
+        }
 
-    if (state.debugMode && db !== current) {
-      console.info("dB: ", db);
-      current = db;
-    }
+        // Continua o loop a cada 100ms (ajustado para não pesar no background)
+        setTimeout(() => {
+            requestAnimationFrame(tick);
+        }, 100);
+    };
 
-    updateDbUI(db);
-    _checkTriggersDebounced(db);
-
-    // Atualiza display calibração se aberta
-    const calDisplay = document.getElementById('cal-db-live');
-    if (calDisplay && document.getElementById('screen-calibration').classList.contains('active')) calDisplay.textContent = db;
-  };
-
-  tick();
+    tick();
 }
 
 function _startStatsInterval() {
@@ -726,6 +852,41 @@ function updateDbUI(db) {
    REPRODUÇÃO
    ================================================================ */
 function playAudioById(audioId, volume) {
+  const audio = state.audios.find(a => a.id === audioId);
+  if (!audio || !audio.src) {
+    showToast("Áudio indisponível", 'warn');
+    return;
+  }
+
+  if (_isNativeAndroid()) {
+    syncNativeConfig().then(async () => {
+      try {
+        const targetVol = volume !== undefined ? volume : (audio.volume || 100) / 100;
+        const result = await EarGuard.playAudio({ audioId, volume: targetVol });
+        if (result && result.ok === false) {
+          throw new Error('Áudio nativo indisponível');
+        }
+        state.isPlaying = true;
+        state.currentAudioId = audioId;
+        updateNowPlayingUI();
+        renderAudioList();
+      } catch (error) {
+        console.error('Falha ao tocar no áudio nativo, usando fallback web:', error);
+        try {
+          await EarGuard.stopAudio();
+        } catch (stopError) {
+          console.error('Falha ao limpar áudio nativo anterior:', stopError);
+        }
+        _playAudioWeb(audioId, volume);
+      }
+    });
+    return;
+  }
+
+  _playAudioWeb(audioId, volume);
+}
+
+function _playAudioWeb(audioId, volume) {
   const audio = state.audios.find(a => a.id === audioId);
   if (!audio || !audio.src) {
     showToast("Áudio indisponível", 'warn');
@@ -803,7 +964,21 @@ function _stopAudio(fade = false) {
   state.isPlaying = false;
 }
 
-function stopAudioManual() {
+async function stopAudioManual() {
+  if (_isNativeAndroid()) {
+    try {
+      await EarGuard.stopAudio();
+    } catch (error) {
+      console.error('Falha ao parar áudio nativo:', error);
+    }
+    state.isPlaying = false;
+    state.currentAudioId = null;
+    _currentTriggerAudioId = null;
+    updateNowPlayingUI();
+    renderAudioList();
+    return;
+  }
+
   _stopAudio(true);
   state.currentAudioId = null;
   _currentTriggerAudioId = null;
@@ -813,7 +988,24 @@ function stopAudioManual() {
   }, 700);
 }
 
-function togglePlayPause() {
+async function togglePlayPause() {
+  if (_isNativeAndroid()) {
+    if (!state.currentAudioId && state.audios.length > 0) {
+      await playAudioById(state.audios[0].id);
+      return;
+    }
+    if (!state.currentAudioId) {
+      showToast('Nenhum áudio na biblioteca', 'info');
+      return;
+    }
+    if (state.isPlaying) {
+      await stopAudioManual();
+      return;
+    }
+    await playAudioById(state.currentAudioId);
+    return;
+  }
+
   if (!state.currentAudioId && state.audios.length > 0) {
     playAudioById(state.audios[0].id);
     return;
@@ -1474,6 +1666,14 @@ async function addAudio() {
   // Salva blob no IndexedDB
   await idbPut(storedKey, file);
   const src = URL.createObjectURL(file);
+  let nativeFileName = null;
+  if (_isNativeAndroid()) {
+    try {
+      nativeFileName = await saveAudioToNative(id, file, file.name);
+    } catch (error) {
+      console.error('Falha ao salvar áudio nativo:', error);
+    }
+  }
 
   state.audios.push({
     id,
@@ -1484,6 +1684,7 @@ async function addAudio() {
     volume: vol,
     icon: 'tone',
     fileName: file.name,
+    nativeFileName,
   });
 
   saveAudioMeta();
@@ -1585,7 +1786,7 @@ function renderAudioList() {
   }
 
   container.innerHTML = state.audios.map(a => {
-    var isPlaying = state.currentAudioIndex === a.id && state.isPlaying;
+    var isPlaying = state.currentAudioId === a.id && state.isPlaying;
     return `
       <div class="audio-card ${isPlaying ? 'audio-card--playing' : ''}" onclick="onAudioCardClick('${_esc(a.id)}')">
         <div class="audio-card-thumb">
@@ -1695,6 +1896,13 @@ async function removeAudio() {
 
   if (state.currentAudioId === selectedAudioId) stopAudioManual();
   if (a.storedKey) await idbDelete(a.storedKey);
+  if (_isNativeAndroid() && a.nativeFileName) {
+    try {
+      await EarGuard.deleteAudio({ nativeFileName: a.nativeFileName });
+    } catch (error) {
+      console.error('Falha ao excluir áudio nativo:', error);
+    }
+  }
   if (!a.isDefault && a.src && a.src.startsWith('blob:')) URL.revokeObjectURL(a.src);
 
   state.audios.splice(idx, 1);
