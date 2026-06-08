@@ -1,18 +1,27 @@
 package com.aeggpw.plugins.earguard;
 
+import android.Manifest;
 import android.content.Intent;
 import android.util.Base64;
 import com.getcapacitor.JSObject;
 import com.getcapacitor.Plugin;
 import com.getcapacitor.PluginCall;
 import com.getcapacitor.PluginMethod;
+import com.getcapacitor.PermissionState;
 import com.getcapacitor.annotation.CapacitorPlugin;
+import com.getcapacitor.annotation.Permission;
+import com.getcapacitor.annotation.PermissionCallback;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 
-@CapacitorPlugin(name = "EarGuard")
+@CapacitorPlugin(
+    name = "EarGuard",
+    permissions = {
+        @Permission(strings = { Manifest.permission.POST_NOTIFICATIONS }, alias = "notifications")
+    }
+)
 public class EarGuardPlugin extends Plugin {
 
     @PluginMethod
@@ -31,6 +40,21 @@ public class EarGuardPlugin extends Plugin {
         String config = call.getString("config");
         NoiseMonitorService.updateConfig(getContext(), config);
         call.resolve();
+    }
+
+    @PluginMethod
+    public void requestNotificationPermission(PluginCall call) {
+        if (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.TIRAMISU) {
+            call.resolve();
+            return;
+        }
+
+        if (getPermissionState("notifications") == PermissionState.GRANTED) {
+            call.resolve();
+            return;
+        }
+
+        requestPermissionForAlias("notifications", call, "onNotificationPermissionResult");
     }
 
     @PluginMethod
@@ -132,6 +156,11 @@ public class EarGuardPlugin extends Plugin {
         if (value != null) {
             NoiseMonitorService.threshold = value;
         }
+        call.resolve();
+    }
+
+    @PermissionCallback
+    public void onNotificationPermissionResult(PluginCall call) {
         call.resolve();
     }
 

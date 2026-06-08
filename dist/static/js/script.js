@@ -681,6 +681,8 @@ async function startMonitoring() {
     }
   }
 
+  void requestNotificationPermission();
+
   if (_audioCtxMic && _audioCtxMic.state === 'suspended') await _audioCtxMic.resume();
 
   state.monitoringActive = true;
@@ -826,7 +828,7 @@ function updateDbUI(db) {
     ring.classList.add('alert');
     if (!ring.dataset.alerted) {
       ring.dataset.alerted = '1';
-      sendNotification('Ruído elevado: ' + db + ' dB');
+      if (!_isNativeAndroid()) sendNotification('Ruído elevado: ' + db + ' dB');
     }
   } else {
     ring.classList.remove('alert');
@@ -1288,15 +1290,28 @@ function finishCalibrationFlow() {
    NOTIFICAÇÕES
    ================================================================ */
 async function requestNotificationPermission() {
+  if (_isNativeAndroid() && EarGuard?.requestNotificationPermission) {
+    try {
+      await EarGuard.requestNotificationPermission();
+    } catch (e) { }
+    return;
+  }
   if (!('Notification' in window)) return;
   if (Notification.permission === 'default') await Notification.requestPermission();
 }
 
 function sendNotification(text) {
   if (!('Notification' in window)) return;
-  if (Notification.permission !== 'granted') return;
   try {
-    new Notification('EarGuard', { body: text, icon: '' });
+    if (Notification.permission === 'granted') {
+      new Notification('EarGuard', { body: text, icon: '' });
+    } else if (Notification.permission === 'default') {
+      Notification.requestPermission().then(permission => {
+        if (permission === 'granted') {
+          new Notification('EarGuard', { body: text, icon: '' });
+        }
+      }).catch(() => { });
+    }
   } catch (e) { }
 }
 

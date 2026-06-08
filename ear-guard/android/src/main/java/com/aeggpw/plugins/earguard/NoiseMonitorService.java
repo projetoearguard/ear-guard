@@ -48,6 +48,10 @@ public class NoiseMonitorService extends Service {
     private static volatile String currentTriggerId = null;
     private static volatile boolean playing = false;
     private static volatile String lastLoadedConfig = "{}";
+    private static volatile boolean thresholdAlertActive = false;
+    private static volatile long lastThresholdNotificationAt = 0L;
+    private static final long THRESHOLD_NOTIFICATION_COOLDOWN_MS = 15000L;
+    private static final int THRESHOLD_NOTIFICATION_ID = 2001;
 
     private boolean running = false;
     private AudioRecord audioRecord;
@@ -368,6 +372,7 @@ public class NoiseMonitorService extends Service {
 
     private void evaluateTriggers(double db) {
         long now = System.currentTimeMillis();
+        evaluateThresholdNotification(db);
         NativeTrigger matched = null;
 
         synchronized (CONFIG_LOCK) {
@@ -433,6 +438,41 @@ public class NoiseMonitorService extends Service {
         }
     }
 
+    private void evaluateThresholdNotification(double db) {
+        boolean shouldNotify = false;
+        double currentThreshold;
+
+        synchronized (CONFIG_LOCK) {
+            currentThreshold = threshold;
+            if (db < currentThreshold) {
+                thresholdAlertActive = false;
+                return;
+            }
+
+            long now = System.currentTimeMillis();
+            if (thresholdAlertActive || now - lastThresholdNotificationAt < THRESHOLD_NOTIFICATION_COOLDOWN_MS) {
+                return;
+            }
+
+            thresholdAlertActive = true;
+            lastThresholdNotificationAt = now;
+            shouldNotify = true;
+        }
+
+        if (!shouldNotify) return;
+
+        NotificationManager manager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+        if (manager != null) {
+            manager.notify(
+                THRESHOLD_NOTIFICATION_ID,
+                createThresholdNotification(
+                    "Ruído elevado",
+                    "Nível registrado: " + (int) db
+                )
+            );
+        }
+    }
+
     @Override
     public void onDestroy() {
         running = false;
@@ -449,6 +489,8 @@ public class NoiseMonitorService extends Service {
         }
         synchronized (CONFIG_LOCK) {
             stopPlaybackLocked();
+            thresholdAlertActive = false;
+            lastThresholdNotificationAt = 0L;
         }
         if (wakeLock != null && wakeLock.isHeld()) {
             wakeLock.release();
@@ -472,6 +514,20 @@ public class NoiseMonitorService extends Service {
             .setContentText(text)
             .setSmallIcon(android.R.drawable.ic_btn_speak_now)
             .setOngoing(true)
+            .build();
+    }
+
+    private Notification createThresholdNotification(String title, String text) {
+        String channelId = "noise_alert";
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            NotificationChannel channel = new NotificationChannel(channelId, "Alertas de ruído", NotificationManager.IMPORTANCE_DEFAULT);
+            getSystemService(NotificationManager.class).createNotificationChannel(channel);
+        }
+        return new Notification.Builder(this, channelId)
+            .setContentTitle(title)
+            .setContentText(text)
+            .setSmallIcon(android.R.drawable.ic_dialog_alert)
+            .setAutoCancel(true)
             .build();
     }
 }
