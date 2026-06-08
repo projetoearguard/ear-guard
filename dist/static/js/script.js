@@ -453,8 +453,8 @@ function getProfileDefinition(profileId) {
       builtIn: true,
       name: override.name || builtin.name,
       sensitivity: override.sensitivity || builtin.sensitivity || base.sensitivity,
-      cooldown: override.cooldown ?? _clamp(Math.round(base.cooldown * builtin.cooldownFactor), 1, 60),
-      debounce: override.debounce ?? _clamp(Math.round(base.debounce * builtin.debounceFactor), 100, 5000),
+      cooldown: override.cooldown ?? _clamp(Math.round(base.cooldown * builtin.cooldownFactor), 1, 120),
+      debounce: override.debounce ?? _clamp(Math.round(base.debounce * builtin.debounceFactor), 100, 10000),
       noiseNotifyThreshold: override.noiseNotifyThreshold ?? _clamp(base.noiseNotifyThreshold + builtin.thresholdDelta, 0, 200),
       dbOffset: override.dbOffset ?? _clamp(base.dbOffset + builtin.dbOffsetDelta, -100, 100),
     };
@@ -1109,9 +1109,9 @@ function saveMonitorConfig() {
     showToast('Valores inválidos', 'error');
     return;
   }
-  state.cooldown = Math.max(0, Math.min(60, cooldown));
-  state.debounce = Math.max(100, Math.min(5000, debounce));
-  state.dbOffset = Math.max(-30, Math.min(30, offset));
+  state.cooldown = Math.max(0, Math.min(120, cooldown));
+  state.debounce = Math.max(100, Math.min(10000, debounce));
+  state.dbOffset = Math.max(-100, Math.min(100, offset));
   _setVal('cal-offset-input', state.dbOffset);
   saveConfig();
   showToast('Configurações salvas', 'success');
@@ -1554,6 +1554,14 @@ function openEditTriggerModal(id) {
   openModal('modal-trigger');
 }
 
+function _findOverlappingTrigger(dbMin, dbMax, ignoreId = null) {
+  return state.triggers.find(trigger =>
+    trigger.id !== ignoreId &&
+    dbMin <= trigger.dbMax &&
+    dbMax >= trigger.dbMin
+  );
+}
+
 function saveTrigger() {
   const name = _getVal('trigger-name-input').trim();
   const dbMin = parseInt(_getVal('trigger-db-min'));
@@ -1573,6 +1581,12 @@ function saveTrigger() {
     return;
   } else if (!audioId) {
     showToast('Selecione um áudio', 'error');
+    return;
+  }
+
+  const overlappingTrigger = _findOverlappingTrigger(dbMin, dbMax, editingTriggerId);
+  if (overlappingTrigger) {
+    showToast(`Faixa sobreposta com "${overlappingTrigger.name}" (${overlappingTrigger.dbMin}–${overlappingTrigger.dbMax} dB)`, 'error');
     return;
   }
 

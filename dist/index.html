@@ -240,7 +240,7 @@
               <span class="config-row-hint">Segundos entre mudanças de áudio</span>
             </div>
             <div class="config-input-inline">
-              <input type="number" class="config-input" id="cooldown-input" min="0" max="60" value="3">
+              <input type="number" class="config-input" id="cooldown-input" min="0" max="120" value="3">
               <span class="unit-label">s</span>
             </div>
           </div>
@@ -250,7 +250,7 @@
               <span class="config-row-hint">Atraso antes de confirmar nível (ms)</span>
             </div>
             <div class="config-input-inline">
-              <input type="number" class="config-input" id="debounce-input" min="100" max="5000" value="800">
+              <input type="number" class="config-input" id="debounce-input" min="100" max="10000" value="800">
               <span class="unit-label">ms</span>
             </div>
           </div>
@@ -674,11 +674,11 @@
       </div>
       <div class="add-field">
         <label class="add-label">Tempo entre trocas</label>
-        <input type="number" class="add-input" id="profile-cooldown-input" min="0" max="60" value="3">
+        <input type="number" class="add-input" id="profile-cooldown-input" min="0" max="120" value="3">
       </div>
       <div class="add-field">
         <label class="add-label">Atraso de confirmação</label>
-        <input type="number" class="add-input" id="profile-debounce-input" min="100" max="5000" value="800">
+        <input type="number" class="add-input" id="profile-debounce-input" min="100" max="10000" value="800">
       </div>
       <div class="add-field">
         <label class="add-label">Limiar de aviso</label>
