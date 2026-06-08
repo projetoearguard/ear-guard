@@ -181,6 +181,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   showScreen('home');
   _setText('footer-sv', state.software);
+
+  await requestMicPermission();
+  void requestNotificationPermission();
 });
 
 /* ================================================================
@@ -631,7 +634,8 @@ function syncThemeSelect() {
    ================================================================ */
 async function requestMicPermission() {
   document.getElementById('permission-overlay').style.display = 'none';
-  await _initMic();
+  const started = await _initMic();
+  return started;
 }
 
 function dismissPermission() {
@@ -680,8 +684,6 @@ async function startMonitoring() {
       console.error("Erro no plugin:", e);
     }
   }
-
-  void requestNotificationPermission();
 
   if (_audioCtxMic && _audioCtxMic.state === 'suspended') await _audioCtxMic.resume();
 
@@ -764,47 +766,47 @@ function resetMonitoring() {
 }
 
 async function _startDbLoop() {
-    const tick = async () => {
-        if (!state.monitoringActive) return;
+  const tick = async () => {
+    if (!state.monitoringActive) return;
 
-        try {
-            // Se estiver no Android, pega do nosso Plugin
-            if (_isNativeAndroid()) {
-                const EarGuard = window.Capacitor.Plugins.EarGuard;
-                const result = await EarGuard.getStatus();
-                const db = Math.round(result?.db || 0);
-                updateDbUI(db);
-                state.currentAudioId = result?.audioId || null;
-                state.isPlaying = !!result?.playing;
-                updateNowPlayingUI();
-                renderAudioList();
+    try {
+      // Se estiver no Android, pega do nosso Plugin
+      if (_isNativeAndroid()) {
+        const EarGuard = window.Capacitor.Plugins.EarGuard;
+        const result = await EarGuard.getStatus();
+        const db = Math.round(result?.db || 0);
+        updateDbUI(db);
+        state.currentAudioId = result?.audioId || null;
+        state.isPlaying = !!result?.playing;
+        updateNowPlayingUI();
+        renderAudioList();
 
-            } else {
-                // Fallback para o navegador (PC/Web) usando o AnalyserNode original
-                if (_analyser) {
-                    const buffer = new Float32Array(_analyser.fftSize);
-                    _analyser.getFloatTimeDomainData(buffer);
-                    let sum = 0;
-                    for (let i = 0; i < buffer.length; i++) sum += buffer[i] * buffer[i];
-                    const rms = Math.sqrt(sum / buffer.length);
-                    const dbFS = rms > 1e-10 ? 20 * Math.log10(rms) : -100;
-                    const db = Math.max(0, Math.round(dbFS + 80 + state.dbOffset));
-                    
-                    updateDbUI(db);
-                    _checkTriggersDebounced(db);
-                }
-            }
-        } catch (error) {
-            console.error("Erro ao ler DB do plugin:", error);
+      } else {
+        // Fallback para o navegador (PC/Web) usando o AnalyserNode original
+        if (_analyser) {
+          const buffer = new Float32Array(_analyser.fftSize);
+          _analyser.getFloatTimeDomainData(buffer);
+          let sum = 0;
+          for (let i = 0; i < buffer.length; i++) sum += buffer[i] * buffer[i];
+          const rms = Math.sqrt(sum / buffer.length);
+          const dbFS = rms > 1e-10 ? 20 * Math.log10(rms) : -100;
+          const db = Math.max(0, Math.round(dbFS + 80 + state.dbOffset));
+
+          updateDbUI(db);
+          _checkTriggersDebounced(db);
         }
+      }
+    } catch (error) {
+      console.error("Erro ao ler DB do plugin:", error);
+    }
 
-        // Continua o loop a cada 100ms (ajustado para não pesar no background)
-        setTimeout(() => {
-            requestAnimationFrame(tick);
-        }, 100);
-    };
+    // Continua o loop a cada 100ms (ajustado para não pesar no background)
+    setTimeout(() => {
+      requestAnimationFrame(tick);
+    }, 100);
+  };
 
-    tick();
+  tick();
 }
 
 function _startStatsInterval() {
