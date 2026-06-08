@@ -15,17 +15,17 @@ const DEFAULT_AUDIOS_CATALOG = [
 ];
 
 const DEFAULT_TRIGGERING_CATALOG = [
-  { id: 'babycry', name: 'Bebê chorando', desc: 'Um bebê chorando', file: 'babycrying.mp3', db: 50 },
-  { id: 'drill', name: 'Furadeira', desc: 'Som de uma furadeira', file: 'drill.mp3', db: 50 },
-  { id: 'fireworks', name: 'Fogos de artifício', desc: 'Explosões de fogos de artifício', file: 'fireworks.mp3', db: 50 },
-  { id: 'hairdryer', name: 'Secador de cabelo', desc: 'Som de secador de cabelo', file: 'hairdryer.mp3', db: 50 },
+  { id: 'babycry', name: 'Bebê chorando', desc: 'Um bebê chorando', file: 'babycrying.mp3', db: 35 },
+  { id: 'drill', name: 'Furadeira', desc: 'Som de uma furadeira em funcionamento', file: 'drill.mp3', db: 35 },
+  { id: 'fireworks', name: 'Fogos de artifício', desc: 'Explosões de fogos de artifício durante comemoração', file: 'fireworks.mp3', db: 32 },
+  { id: 'hairdryer', name: 'Secador de cabelo', desc: 'Som de secador de cabelo em funcionamento', file: 'hairdryer.mp3', db: 31 },
   { id: 'alarm', name: 'Alarme', desc: 'Alarme de desastre natural', file: 'mgalarm.mp3', db: 50 },
-  { id: 'talking', name: 'Pessoas falando', desc: 'Sons de pessoas falando', file: 'peopletalking.mp3', db: 50 },
-  { id: 'restaurant', name: 'Restaurante', desc: 'Sons de pessoas falando e comendo', file: 'restaurant.mp3', db: 50 },
-  { id: 'subway', name: 'Metrô urbano', desc: 'Sons de uma estação de metrô', file: 'spsubway.mp3', db: 50 },
-  { id: 'static', name: 'Estática de televisão', desc: 'Som de estática de televisão', file: 'static.mp3', db: 50 },
-  { id: 'traffic', name: 'Tráfego urbano', desc: 'Som de carros em uma rua', file: 'traffic.mp3', db: 50 },
-  { id: 'streets', name: 'Ruas urbanas', desc: 'Som atravessando uma rua urbana', file: 'urbanstreet.mp3', db: 50 },
+  { id: 'talking', name: 'Pessoas falando', desc: 'Sons de pessoas falando', file: 'peopletalking.mp3', db: 28 },
+  { id: 'restaurant', name: 'Restaurante', desc: 'Sons de pessoas falando e comendo em um restaurante', file: 'restaurant.mp3', db: 31 },
+  { id: 'subway', name: 'Metrô', desc: 'Sons de uma estação de metrô', file: 'spsubway.mp3', db: 38 },
+  { id: 'static', name: 'Estática de televisão', desc: 'Som de estática de televisão', file: 'static.mp3', db: 26 },
+  { id: 'traffic', name: 'Tráfego', desc: 'Som de carros em uma rua', file: 'traffic.mp3', db: 38 },
+  { id: 'streets', name: 'Ruas urbanas', desc: 'Som atravessando uma rua urbana', file: 'urbanstreets.mp3', db: 32 },
 ]
 
 function audioIconSVG(iconName) {
