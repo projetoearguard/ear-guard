@@ -1,6 +1,144 @@
 "use strict";
 
 const EarGuard = Capacitor?.Plugins?.EarGuard;
+const ONBOARDING_STORAGE_KEY = 'earguard_onboarding_seen';
+const ONBOARDING_STEPS = [
+  {
+    title: 'Vamos começar',
+    text: 'Toque em "Áudios" para abrir a biblioteca de áudios.',
+    hint: 'Clique na área destacada para continuar.',
+    target: () => document.getElementById('nav-audios'),
+    advanceOn: 'click',
+  },
+  {
+    title: 'Adicione um áudio',
+    text: 'Agora toque no botão de adicionar para abrir a tela de novos audios.',
+    hint: 'Vamos usar um som integrado para o tutorial.',
+    target: () => document.querySelector('#screen-audios .screen-header .icon-btn'),
+    advanceOn: 'click',
+  },
+  {
+    title: 'Use um som do app',
+    text: 'Toque em "Sons integrados" para ver os áudios que já vem prontos no aplicativo.',
+    hint: 'Esse caminho é o mais rápido sem precisar buscar um arquivo.',
+    target: () => document.getElementById('tab-default'),
+    advanceOn: 'click',
+  },
+  {
+    title: 'Escolha um áudio',
+    text: () => _getFirstTutorialAudioTarget('.default-audio-item:not(.added)')
+      ? 'Toque em um som integrado para adicioná-lo a biblioteca.'
+      : 'Esse som já esta na sua biblioteca. Toque nele para seguir para o proximo passo.',
+    hint: 'Clique em qualquer um dos áudios.',
+    target: () => _getFirstTutorialAudioTarget('.default-audio-item:not(.added)') || _getFirstTutorialAudioTarget('.default-audio-item'),
+    advanceOn: 'click',
+  },
+  {
+    title: 'Saia da tela',
+    text: 'Clique aqui para retornar para a tela anterior.',
+    hint: 'A forma de voltar para a tela de áudios.',
+    target: () => document.getElementById('add-audio-back-btn'),
+    advanceOn: 'click',
+  },
+  {
+    title: 'Agora vamos aos gatilhos',
+    text: 'Toque em "Gatilhos" para configurar quando esse áudio deve tocar automaticamente.',
+    hint: 'Vamos ligar um áudio a uma faixa de ruido.',
+    target: () => document.getElementById('nav-triggers'),
+    advanceOn: 'click',
+  },
+  {
+    title: 'Crie um gatilho',
+    text: 'Toque no botão de novo gatilho para abrir a configuração.',
+    hint: 'Clqiue no botão com ícone "+" ou no botão central.',
+    target: () => _getTutorialTriggerAddButton(),
+    advanceOn: 'click',
+  },
+  {
+    title: 'Salve o exemplo',
+    text: 'Já deixei um exemplo preenchido para você ver como funciona. Toque em "Salvar gatilho".',
+    hint: 'Assim fica mais rápido para começar a usar o aplicativo.',
+    target: () => document.querySelector('#modal-trigger .modal-btn-primary'),
+    advanceOn: 'event',
+    eventName: 'trigger-saved',
+    onEnter: () => _prepareTutorialTriggerSample(),
+  },
+  {
+    title: 'Preferências e ajustes',
+    text: 'Toque em "Config." para ver onde você pode ajustar tema, monitoramento e notificações depois.',
+    hint: 'Esse é o lugar para deixar o app do seu jeito.',
+    target: () => document.getElementById('nav-configurations'),
+    advanceOn: 'click',
+  },
+  {
+    title: 'Ajuste manual do monitoramento',
+    text: 'Altere este valor para ajustar o tempo entre trocas do app.',
+    hint: 'O tutorial só vai continuar depois que você realmente mudar o campo.',
+    target: () => document.getElementById('cooldown-input'),
+    advanceOn: 'input',
+  },
+  {
+    title: 'Salve o monitoramento',
+    text: 'Agora toque em "Salvar configurações" para gravar esses ajustes de monitoramento.',
+    hint: 'O tutorial vai esperar a confirmação do salvamento.',
+    target: () => document.querySelector('#screen-configurations .config-section:nth-of-type(2) .config-save-btn'),
+    advanceOn: 'event',
+    eventName: 'monitor-config-saved',
+  },
+  {
+    title: 'Alertas e notificações',
+    text: 'Agora altere o limite de ruído para localizar onde o app controla os avisos.',
+    hint: 'Só avançaremos quando o campo mudar.',
+    target: () => document.getElementById('noise-notify-threshold'),
+    advanceOn: 'input',
+  },
+  {
+    title: 'Salve as notificações',
+    text: 'Toque em "Salvar" para aplicar o limite de ruído e as notificações dessa área.',
+    hint: 'O tutorial vai esperar a confirmação do salvamento.',
+    target: () => document.querySelector('#screen-configurations .config-section:nth-of-type(4) .config-save-btn'),
+    advanceOn: 'event',
+    eventName: 'notify-config-saved',
+  },
+  {
+    title: 'Abra o ajuste guiado',
+    text: 'Toque em "Ajuste guiado por áudio" para o app se ajustar às suas necessiades.',
+    hint: 'Esse fluxo ajuda a definir tempo de espera, atraso, sensibilidade e alertas.',
+    target: () => document.querySelector('#screen-configurations .config-calibrate-btn'),
+    advanceOn: 'click',
+  },
+  {
+    title: 'Ouvir a referência',
+    text: 'Agora toque em "Ouvir" para escutar o primeiro som de calibração.',
+    hint: 'Você vai repetir esse processo com os próximos áudios para um ajuste mais fiel.',
+    target: () => document.querySelector('#screen-calibration .config-select-btn'),
+    advanceOn: 'event',
+    eventName: 'calibration-played',
+  },
+  {
+    title: 'Marque o incômodo',
+    text: 'Escolha uma nota de 1 a 5 para dizer o quanto esse som te incomoda.',
+    hint: 'Escolha de acordo com o que sentir de verdade.',
+    target: () => document.querySelector('#screen-calibration .calibration-rating-row'),
+    advanceOn: 'event',
+    eventName: 'calibration-rated',
+  },
+  {
+    title: 'Vá para a próxima referência',
+    text: 'Toque em "Próximo" para seguir no ajuste guiado.',
+    hint: 'Ao concluir todos os áudios, o app configura de acordo com suas necessidades.',
+    target: () => document.getElementById('calibration-next-btn'),
+    advanceOn: 'event',
+    eventName: 'calibration-advanced',
+  },
+  {
+    title: 'Como isso ajuda você',
+    text: 'A calibração guiada ajusta sensibilidade, tempo entre trocas, atraso de confirmacao, limite de alerta e offset de dB. Se quiser uma configuração mais rigorosa, você sempre pode voltar em Configurações e alterar esses campos manualmente.',
+    hint: 'Quando quiser, reabra este tutorial e repita o processo.',
+    manual: true,
+    primaryLabel: 'Concluir',
+  },
+];
 
 /* ================================================================
    SONS INTEGRADOS
@@ -17,17 +155,17 @@ const DEFAULT_AUDIOS_CATALOG = [
 ];
 
 const DEFAULT_TRIGGERING_CATALOG = [
-  { id: 'babycry', name: 'Bebê chorando', desc: 'Um bebê chorando', file: 'babycrying.mp3', db: 35 },
-  { id: 'drill', name: 'Furadeira', desc: 'Som de uma furadeira em funcionamento', file: 'drill.mp3', db: 35 },
-  { id: 'fireworks', name: 'Fogos de artifício', desc: 'Explosões de fogos de artifício durante comemoração', file: 'fireworks.mp3', db: 32 },
-  { id: 'hairdryer', name: 'Secador de cabelo', desc: 'Som de secador de cabelo em funcionamento', file: 'hairdryer.mp3', db: 31 },
-  { id: 'alarm', name: 'Alarme', desc: 'Alarme de desastre natural', file: 'mgalarm.mp3', db: 50 },
-  { id: 'talking', name: 'Pessoas falando', desc: 'Sons de pessoas falando', file: 'peopletalking.mp3', db: 28 },
-  { id: 'restaurant', name: 'Restaurante', desc: 'Sons de pessoas falando e comendo em um restaurante', file: 'restaurant.mp3', db: 31 },
-  { id: 'subway', name: 'Metrô', desc: 'Sons de uma estação de metrô', file: 'spsubway.mp3', db: 38 },
-  { id: 'static', name: 'Estática de televisão', desc: 'Som de estática de televisão', file: 'static.mp3', db: 26 },
-  { id: 'traffic', name: 'Tráfego', desc: 'Som de carros em uma rua', file: 'traffic.mp3', db: 38 },
-  { id: 'streets', name: 'Ruas urbanas', desc: 'Som atravessando uma rua urbana', file: 'urbanstreets.mp3', db: 32 },
+  { id: 'babycry', name: 'Bebê chorando', desc: 'Um bebê chorando', file: 'babycrying.mp3', db: 72 },
+  { id: 'drill', name: 'Furadeira', desc: 'Som de uma furadeira em funcionamento', file: 'drill.mp3', db: 88 },
+  { id: 'fireworks', name: 'Fogos de artifício', desc: 'Explosões de fogos de artifício durante comemoração', file: 'fireworks.mp3', db: 105 },
+  { id: 'hairdryer', name: 'Secador de cabelo', desc: 'Som de secador de cabelo em funcionamento', file: 'hairdryer.mp3', db: 87 },
+  { id: 'siren', name: 'Sirene', desc: 'Sirene de desastre natural', file: 'siren.mp3', db: 113 },
+  { id: 'talking', name: 'Pessoas falando', desc: 'Sons de pessoas falando', file: 'peopletalking.mp3', db: 68 },
+  { id: 'restaurant', name: 'Restaurante', desc: 'Sons de pessoas falando e comendo em um restaurante', file: 'restaurant.mp3', db: 74 },
+  { id: 'subway', name: 'Metrô', desc: 'Sons de uma estação de metrô', file: 'spsubway.mp3', db: 88 },
+  { id: 'static', name: 'Estática de televisão', desc: 'Som de estática de televisão', file: 'static.mp3', db: 59 },
+  { id: 'traffic', name: 'Tráfego', desc: 'Som de carros em uma rua', file: 'traffic.mp3', db: 80 },
+  { id: 'streets', name: 'Ruas urbanas', desc: 'Som atravessando uma rua urbana', file: 'urbanstreets.mp3', db: 77 },
 ]
 
 function audioIconSVG(iconName) {
@@ -90,6 +228,7 @@ const state = {
   debounce: 800,
   dbOffset: 0,
   noiseNotifyThreshold: 80,
+  notifyOnHighNoise: true,
   notifyOnTrigger: true,
   activeProfile: null,
   profileBase: { ...DEFAULT_PROFILE_BASE },
@@ -129,7 +268,7 @@ const state = {
 
   // Desenvolvimento
   debugMode: false,
-  software: '1.0.0.0606.2008',
+  software: '1.1.3',
 };
 
 /* ================================================================
@@ -148,6 +287,11 @@ let _pendingDb = null;
 let _previewEl = null;
 let _currentTriggerAudioId = null;
 let _statsInterval = null;
+let _onboardingStep = 0;
+let _onboardingActive = false;
+let _onboardingFrame = null;
+let _onboardingStepState = null;
+let _auxAudioState = null;
 
 let selectedAudioId = null;
 let editingTriggerId = null;
@@ -171,6 +315,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   renderProfilesManager();
   renderCalibrationStep();
   renderNotificationPreviewOptions();
+  updateNotifyNoiseSettingsUI();
   updateNowPlayingUI();
   updateStatsUI();
 
@@ -181,15 +326,38 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   showScreen('home');
   _setText('footer-sv', state.software);
+  const notifySelect = document.getElementById('notify-preview-audio');
+  if (notifySelect) {
+    notifySelect.addEventListener('change', function () {
+      if (_auxAudioState && _auxAudioState.kind === 'notify') stopAuxiliaryAudio();
+    });
+  }
+  const notifyNoiseToggle = document.getElementById('notify-noise-toggle');
+  if (notifyNoiseToggle) {
+    notifyNoiseToggle.addEventListener('change', updateNotifyNoiseSettingsUI);
+  }
 
   await requestMicPermission();
-  void requestNotificationPermission();
+  if (state.notifyOnHighNoise || state.notifyOnTrigger) {
+    void requestNotificationPermission();
+  }
+  if (shouldShowOnboarding()) {
+    setTimeout(function () {
+      openOnboarding(false);
+    }, 350);
+  }
 });
+
+document.addEventListener('click', handleOnboardingClick, true);
+document.addEventListener('input', handleOnboardingInput, true);
+document.addEventListener('change', handleOnboardingInput, true);
+document.addEventListener('scroll', queueOnboardingRefresh, true);
+window.addEventListener('resize', queueOnboardingRefresh);
 
 /* ================================================================
    IndexedDB
    ================================================================ */
-let _idb = null;
+var _idb = null;
 
 function initDB() {
   return new Promise((resolve, reject) => {
@@ -303,6 +471,7 @@ function loadConfig() {
     state.debounce = c.debounce ?? 800;
     state.dbOffset = c.dbOffset ?? 0;
     state.noiseNotifyThreshold = c.noiseNotifyThreshold ?? 80;
+    state.notifyOnHighNoise = c.notifyOnHighNoise ?? true;
     state.notifyOnTrigger = c.notifyOnTrigger ?? true;
     state.activeProfile = c.activeProfile || null;
     state.profileBase = { ...DEFAULT_PROFILE_BASE, ...(c.profileBase || {}) };
@@ -317,7 +486,10 @@ function loadConfig() {
     _setVal('offset-input', state.dbOffset);
     _setVal('cal-offset-input', state.dbOffset);
     _setVal('noise-notify-threshold', state.noiseNotifyThreshold);
+    _setChecked('notify-noise-toggle', state.notifyOnHighNoise);
     _setChecked('notify-trigger-toggle', state.notifyOnTrigger);
+    updateNotifyNoiseSettingsUI();
+    logNotificationSettings();
 
     // Sensibilidade
     document.querySelectorAll('.sens-btn').forEach(b => {
@@ -334,6 +506,7 @@ function saveConfig() {
     debounce: state.debounce,
     dbOffset: state.dbOffset,
     noiseNotifyThreshold: state.noiseNotifyThreshold,
+    notifyOnHighNoise: state.notifyOnHighNoise,
     notifyOnTrigger: state.notifyOnTrigger,
     activeProfile: state.activeProfile,
     profileBase: state.profileBase,
@@ -402,6 +575,7 @@ function buildNativeConfig() {
     debounce: state.debounce,
     dbOffset: state.dbOffset,
     noiseNotifyThreshold: state.noiseNotifyThreshold,
+    notifyOnHighNoise: state.notifyOnHighNoise,
     notifyOnTrigger: state.notifyOnTrigger,
     audios,
     triggers,
@@ -430,6 +604,7 @@ async function saveAudioToNative(audioId, blob, fileName) {
 async function syncNativeConfig() {
   if (!_isNativeAndroid()) return;
   try {
+    logNotificationSettings();
     await EarGuard.configure({ config: JSON.stringify(buildNativeConfig()) });
   } catch (error) {
     console.error('Falha ao enviar config nativa:', error);
@@ -596,6 +771,7 @@ function saveHistoryToStorage() {
    NAVEGAÇÃO
    ================================================================ */
 function showScreen(name) {
+  _handleAuxAudioScreenExit(name);
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
   const screen = document.getElementById('screen-' + name);
@@ -607,6 +783,7 @@ function showScreen(name) {
   if (name === 'history') renderHistoryEvents();
   if (name === 'configurations') { renderProfilesManager(); renderNotificationPreviewOptions(); }
   if (name === 'calibration') renderCalibrationStep();
+  queueOnboardingRefresh();
 }
 
 /* ================================================================
@@ -770,7 +947,7 @@ async function _startDbLoop() {
     if (!state.monitoringActive) return;
 
     try {
-      // Se estiver no Android, pega do nosso Plugin
+      // Se estiver no Android, pega do Plugin
       if (_isNativeAndroid()) {
         const EarGuard = window.Capacitor.Plugins.EarGuard;
         const result = await EarGuard.getStatus();
@@ -782,7 +959,7 @@ async function _startDbLoop() {
         renderAudioList();
 
       } else {
-        // Fallback para o navegador (PC/Web) usando o AnalyserNode original
+        // Fallback para o navegador
         if (_analyser) {
           const buffer = new Float32Array(_analyser.fftSize);
           _analyser.getFloatTimeDomainData(buffer);
@@ -826,7 +1003,7 @@ function updateDbUI(db) {
 
   // Alerta visual
   const ring = document.getElementById('monitor-ring');
-  if (db >= state.noiseNotifyThreshold) {
+  if (state.notifyOnHighNoise && db >= state.noiseNotifyThreshold) {
     ring.classList.add('alert');
     if (!ring.dataset.alerted) {
       ring.dataset.alerted = '1';
@@ -861,6 +1038,8 @@ function playAudioById(audioId, volume) {
     showToast("Áudio indisponível", 'warn');
     return;
   }
+
+  stopAuxiliaryAudio();
 
   if (_isNativeAndroid()) {
     syncNativeConfig().then(async () => {
@@ -969,6 +1148,10 @@ function _stopAudio(fade = false) {
 }
 
 async function stopAudioManual() {
+  return stopAudioManualWithMode(false);
+}
+
+async function stopAudioManualWithMode(immediate) {
   if (_isNativeAndroid()) {
     try {
       await EarGuard.stopAudio();
@@ -983,9 +1166,14 @@ async function stopAudioManual() {
     return;
   }
 
-  _stopAudio(true);
+  _stopAudio(!immediate);
   state.currentAudioId = null;
   _currentTriggerAudioId = null;
+  if (immediate) {
+    updateNowPlayingUI();
+    renderAudioList();
+    return;
+  }
   setTimeout(() => {
     updateNowPlayingUI();
     renderAudioList();
@@ -1119,19 +1307,43 @@ function saveMonitorConfig() {
   _setVal('cal-offset-input', state.dbOffset);
   saveConfig();
   showToast('Configurações salvas', 'success');
+  notifyTutorialEvent('monitor-config-saved');
 }
 
 function saveNotifyConfig() {
+  const notifyOnHighNoise = document.getElementById('notify-noise-toggle').checked;
   const threshold = parseInt(_getVal('noise-notify-threshold'));
-  if (isNaN(threshold)) {
+  if (notifyOnHighNoise && isNaN(threshold)) {
     showToast('Valor inválido', 'error');
     return;
   }
-  state.noiseNotifyThreshold = _clamp(threshold, 0, 200);
+  state.notifyOnHighNoise = notifyOnHighNoise;
+  if (!isNaN(threshold)) {
+    state.noiseNotifyThreshold = _clamp(threshold, 0, 200);
+  }
   state.notifyOnTrigger = document.getElementById('notify-trigger-toggle').checked;
+  updateNotifyNoiseSettingsUI();
+  logNotificationSettings();
   saveConfig();
-  requestNotificationPermission();
+  if (state.notifyOnHighNoise || state.notifyOnTrigger) {
+    requestNotificationPermission();
+  }
   showToast('Configurações salvas', 'success');
+  notifyTutorialEvent('notify-config-saved');
+}
+
+function updateNotifyNoiseSettingsUI() {
+  const toggle = document.getElementById('notify-noise-toggle');
+  const thresholdRow = document.getElementById('noise-notify-threshold-row');
+  if (!toggle || !thresholdRow) return;
+  const enabled = toggle.checked;
+  thresholdRow.hidden = !enabled;
+  toggle.setAttribute('aria-expanded', enabled ? 'true' : 'false');
+}
+
+function logNotificationSettings() {
+  console.log("notifyOnHighNoise =", state.notifyOnHighNoise);
+  console.log("notifyOnTrigger =", state.notifyOnTrigger);
 }
 
 function renderNotificationPreviewOptions() {
@@ -1147,13 +1359,7 @@ function playNotifyPreview() {
   const stepId = _getVal('notify-preview-audio');
   const step = CALIBRATION_SEQUENCE.find(item => item.id === stepId) || CALIBRATION_SEQUENCE[0];
   if (!step) return;
-  if (_previewEl) {
-    _previewEl.pause();
-    _previewEl = null;
-  }
-  _previewEl = new Audio(step.file);
-  _previewEl.volume = 0.8;
-  _previewEl.play().catch(() => { });
+  toggleAuxiliaryAudio('notify', step.file, 0.8);
 }
 
 function saveCalibration() {
@@ -1168,11 +1374,83 @@ function saveCalibration() {
   showToast('Offset salvo: ' + (state.dbOffset >= 0 ? '+' : '') + state.dbOffset + ' dB', 'success');
 }
 
+function _getAuxAudioButton(kind) {
+  return document.getElementById(kind === 'calibration' ? 'calibration-play-btn' : 'notify-preview-btn');
+}
+
+function _syncAuxAudioButtons() {
+  const calibrationBtn = _getAuxAudioButton('calibration');
+  const notifyBtn = _getAuxAudioButton('notify');
+  if (calibrationBtn) calibrationBtn.textContent = _auxAudioState && _auxAudioState.kind === 'calibration' ? 'Parar' : 'Ouvir';
+  if (notifyBtn) notifyBtn.textContent = _auxAudioState && _auxAudioState.kind === 'notify' ? 'Parar' : 'Ouvir';
+}
+
+function stopAuxiliaryAudio() {
+  if (_auxAudioState && _auxAudioState.audio) {
+    _auxAudioState.audio.onended = null;
+    _auxAudioState.audio.onerror = null;
+    _auxAudioState.audio.pause();
+    _auxAudioState.audio.src = '';
+  }
+  _auxAudioState = null;
+  _previewEl = null;
+  _syncAuxAudioButtons();
+}
+
+function _handleAuxAudioScreenExit(name) {
+  if (!_auxAudioState) return;
+  if (_auxAudioState.kind === 'calibration' && name !== 'calibration') {
+    stopAuxiliaryAudio();
+    return;
+  }
+  if (_auxAudioState.kind === 'notify' && name !== 'configurations') {
+    stopAuxiliaryAudio();
+  }
+}
+
+async function toggleAuxiliaryAudio(kind, src, volume, onStarted) {
+  if (_auxAudioState && _auxAudioState.kind === kind && _auxAudioState.src === src) {
+    stopAuxiliaryAudio();
+    return false;
+  }
+
+  stopAuxiliaryAudio();
+
+  if (state.isPlaying || state.currentAudioId) {
+    await stopAudioManualWithMode(true);
+  }
+
+  const audio = new Audio(src);
+  audio.volume = volume;
+  audio.onended = function () {
+    stopAuxiliaryAudio();
+  };
+  audio.onerror = function () {
+    stopAuxiliaryAudio();
+    showToast('Erro ao reproduzir áudio', 'error');
+  };
+
+  _auxAudioState = { kind: kind, src: src, audio: audio };
+  _previewEl = audio;
+  _syncAuxAudioButtons();
+
+  try {
+    await audio.play();
+    if (typeof onStarted === 'function') onStarted();
+    return true;
+  } catch (e) {
+    stopAuxiliaryAudio();
+    return false;
+  }
+}
+
 function startCalibrationFlow() {
+  stopAuxiliaryAudio();
   state.calibrationIndex = 0;
   state.calibrationResponses = [];
   renderCalibrationStep();
   showScreen('calibration');
+  notifyTutorialEvent('calibration-started');
 }
 
 function renderCalibrationStep() {
@@ -1197,6 +1475,7 @@ function renderCalibrationStep() {
       nextBtn.textContent = 'Reiniciar ajuste';
       nextBtn.onclick = startCalibrationFlow;
     }
+    stopAuxiliaryAudio();
     return;
   }
 
@@ -1219,13 +1498,9 @@ function renderCalibrationStep() {
 function playCalibrationStep() {
   const step = CALIBRATION_SEQUENCE[state.calibrationIndex];
   if (!step) return;
-  if (_previewEl) {
-    _previewEl.pause();
-    _previewEl = null;
-  }
-  _previewEl = new Audio(step.file);
-  _previewEl.volume = 0.85;
-  _previewEl.play().catch(() => { });
+  toggleAuxiliaryAudio('calibration', step.file, 0.85, function () {
+    notifyTutorialEvent('calibration-played');
+  });
 }
 
 function setCalibrationRating(rating) {
@@ -1235,6 +1510,7 @@ function setCalibrationRating(rating) {
     timestamp: Date.now(),
   };
   renderCalibrationStep();
+  notifyTutorialEvent('calibration-rated');
 }
 
 function nextCalibrationStep() {
@@ -1245,11 +1521,15 @@ function nextCalibrationStep() {
     return;
   }
   if (state.calibrationIndex >= CALIBRATION_SEQUENCE.length - 1) {
+    stopAuxiliaryAudio();
     finishCalibrationFlow();
+    notifyTutorialEvent('calibration-advanced');
     return;
   }
+  stopAuxiliaryAudio();
   state.calibrationIndex += 1;
   renderCalibrationStep();
+  notifyTutorialEvent('calibration-advanced');
 }
 
 function finishCalibrationFlow() {
@@ -1315,6 +1595,281 @@ function sendNotification(text) {
       }).catch(() => { });
     }
   } catch (e) { }
+}
+
+function shouldShowOnboarding() {
+  try {
+    return !localStorage.getItem(ONBOARDING_STORAGE_KEY);
+  } catch (e) {
+    return false;
+  }
+}
+
+function markOnboardingSeen() {
+  try {
+    localStorage.setItem(ONBOARDING_STORAGE_KEY, '1');
+  } catch (e) { }
+}
+
+function openOnboarding(fromSettings) {
+  _onboardingActive = true;
+  _onboardingStep = 0;
+  _onboardingStepState = null;
+  document.body.classList.add('tutorial-open');
+  var overlay = document.getElementById('tutorial-overlay');
+  if (overlay) overlay.classList.add('active');
+  showOnboardingStep();
+  if (fromSettings) showToast('Tutorial reaberto para revisão rápida', 'info');
+}
+
+function closeOnboarding(markSeen) {
+  _onboardingActive = false;
+  _onboardingStepState = null;
+  document.body.classList.remove('tutorial-open');
+  var overlay = document.getElementById('tutorial-overlay');
+  var spotlight = document.getElementById('tutorial-spotlight');
+  if (overlay) overlay.classList.remove('active');
+  if (spotlight) spotlight.classList.remove('visible');
+  if (markSeen) markOnboardingSeen();
+}
+
+function skipOnboarding() {
+  closeOnboarding(true);
+}
+
+function nextOnboardingStep() {
+  if (_onboardingStep >= ONBOARDING_STEPS.length - 1) {
+    closeOnboarding(true);
+    return;
+  }
+  _onboardingStep++;
+  showOnboardingStep();
+}
+
+function previousOnboardingStep() {
+  if (_onboardingStep <= 0) return;
+  _onboardingStep--;
+  showOnboardingStep();
+}
+
+function showOnboardingStep() {
+  const step = ONBOARDING_STEPS[_onboardingStep];
+  if (!step) return;
+  _onboardingStepState = _buildOnboardingStepState(step);
+  if (typeof step.onEnter === 'function') step.onEnter();
+  _setText('tutorial-step-count', (_onboardingStep + 1) + ' de ' + ONBOARDING_STEPS.length);
+  _setText('tutorial-title', _resolveOnboardingCopy(step.title));
+  _setText('tutorial-text', _resolveOnboardingCopy(step.text));
+  _setText('tutorial-hint', _resolveOnboardingCopy(step.hint) || 'Clique na area destacada para continuar.');
+  var back = document.getElementById('tutorial-back');
+  var next = document.getElementById('tutorial-next');
+  if (back) back.style.visibility = _onboardingStep === 0 ? 'hidden' : 'visible';
+  if (next) next.textContent = step.primaryLabel || 'Continuar';
+  _updateOnboardingPrimaryVisibility();
+  queueOnboardingRefresh();
+  setTimeout(queueOnboardingRefresh, 140);
+  setTimeout(queueOnboardingRefresh, 320);
+}
+
+function handleOnboardingClick(event) {
+  if (!_onboardingActive) return;
+  var step = ONBOARDING_STEPS[_onboardingStep];
+  if (!step || step.advanceOn !== 'click') return;
+  var target = _resolveOnboardingTarget(step);
+  if (!target) return;
+  if (target === event.target || target.contains(event.target)) {
+    setTimeout(function () {
+      nextOnboardingStep();
+    }, 160);
+  }
+}
+
+function handleOnboardingInput(event) {
+  if (!_onboardingActive) return;
+  var step = ONBOARDING_STEPS[_onboardingStep];
+  if (!step || step.advanceOn !== 'input') return;
+  var target = _resolveOnboardingTarget(step);
+  if (!target) return;
+  if (event.target !== target && (!target.contains || !target.contains(event.target))) return;
+
+  var initialValue = _onboardingStepState ? _onboardingStepState.initialValue : undefined;
+  var currentValue = _getOnboardingTargetValue(target);
+  if (currentValue === initialValue) return;
+
+  setTimeout(function () {
+    nextOnboardingStep();
+  }, 160);
+}
+
+function queueOnboardingRefresh() {
+  if (!_onboardingActive) return;
+  if (_onboardingFrame) cancelAnimationFrame(_onboardingFrame);
+  _onboardingFrame = requestAnimationFrame(function () {
+    _onboardingFrame = null;
+    _positionOnboardingSpotlight();
+  });
+}
+
+function _positionOnboardingSpotlight() {
+  var overlay = document.getElementById('tutorial-overlay');
+  var spotlight = document.getElementById('tutorial-spotlight');
+  var panel = document.getElementById('tutorial-panel');
+  var step = ONBOARDING_STEPS[_onboardingStep];
+  if (!overlay || !spotlight || !panel || !step || !_onboardingActive) return;
+
+  var target = _resolveOnboardingTarget(step);
+  var next = document.getElementById('tutorial-next');
+  if (target && !step.manual) {
+    var rect = target.getBoundingClientRect();
+    var size = Math.max(rect.width, rect.height) + 28;
+    var left = rect.left + rect.width / 2 - size / 2;
+    var top = rect.top + rect.height / 2 - size / 2;
+    spotlight.style.width = size + 'px';
+    spotlight.style.height = size + 'px';
+    spotlight.style.left = left + 'px';
+    spotlight.style.top = top + 'px';
+    spotlight.classList.add('visible');
+    panel.classList.remove('is-centered');
+    _positionOnboardingPanel(panel, rect);
+    if (next) next.style.display = 'none';
+  } else {
+    spotlight.classList.remove('visible');
+    panel.classList.toggle('is-centered', !!step.manual);
+    _resetOnboardingPanelPosition(panel, !!step.manual);
+    if (next) next.style.display = 'inline-flex';
+  }
+
+  _updateOnboardingPrimaryVisibility();
+}
+
+function _updateOnboardingPrimaryVisibility() {
+  var next = document.getElementById('tutorial-next');
+  if (!next) return;
+  var step = ONBOARDING_STEPS[_onboardingStep];
+  var target = _resolveOnboardingTarget(step);
+  next.style.display = step && (step.manual || !target) ? 'inline-flex' : 'none';
+}
+
+function _positionOnboardingPanel(panel, rect) {
+  if (!panel || !rect) return;
+  var viewportWidth = window.innerWidth;
+  var viewportHeight = window.innerHeight;
+  var margin = 16;
+  var gap = 18;
+
+  panel.classList.remove('is-centered');
+  panel.style.right = 'auto';
+  panel.style.bottom = 'auto';
+  panel.style.transform = 'none';
+
+  var panelWidth = panel.offsetWidth || 360;
+  var panelHeight = panel.offsetHeight || 220;
+  var targetCenterX = rect.left + rect.width / 2;
+  var targetCenterY = rect.top + rect.height / 2;
+
+  var left = targetCenterX > viewportWidth / 2
+    ? rect.left - panelWidth - gap
+    : rect.right + gap;
+  left = Math.max(margin, Math.min(left, viewportWidth - panelWidth - margin));
+
+  var top = targetCenterY > viewportHeight / 2
+    ? rect.top - panelHeight - gap
+    : rect.bottom + gap;
+
+  if (top < margin) {
+    top = Math.min(viewportHeight - panelHeight - margin, rect.bottom + gap);
+  }
+  if (top + panelHeight > viewportHeight - margin) {
+    top = Math.max(margin, rect.top - panelHeight - gap);
+  }
+
+  panel.style.left = left + 'px';
+  panel.style.top = Math.max(margin, Math.min(top, viewportHeight - panelHeight - margin)) + 'px';
+}
+
+function _resetOnboardingPanelPosition(panel, centered) {
+  if (!panel) return;
+  panel.style.right = '';
+  panel.style.bottom = '';
+  panel.style.left = centered ? '' : '50%';
+  panel.style.top = centered ? '' : '';
+  panel.style.transform = centered ? '' : 'translateX(-50%)';
+}
+
+function _resolveOnboardingTarget(step) {
+  if (!step || !step.target) return null;
+  var target = typeof step.target === 'function' ? step.target() : document.querySelector(step.target);
+  if (!target) return null;
+  var rect = target.getBoundingClientRect();
+  if (!rect.width && !rect.height) return null;
+  return target;
+}
+
+function _buildOnboardingStepState(step) {
+  var target = _resolveOnboardingTarget(step);
+  return {
+    initialValue: _getOnboardingTargetValue(target),
+  };
+}
+
+function _getOnboardingTargetValue(target) {
+  if (!target) return null;
+  if (target.matches && target.matches('input, textarea, select')) {
+    if (target.type === 'checkbox' || target.type === 'radio') return !!target.checked;
+    return target.value;
+  }
+  return target.textContent;
+}
+
+function _resolveOnboardingCopy(value) {
+  return typeof value === 'function' ? value() : value;
+}
+
+function _getFirstTutorialAudioTarget(selector) {
+  return document.querySelector('#default-audio-grid ' + selector);
+}
+
+function _getTutorialTriggerAddButton() {
+  return document.querySelector('#trigger-list-container .add-btn-primary') ||
+    document.querySelector('#screen-triggers .screen-header .icon-btn');
+}
+
+function _prepareTutorialTriggerSample() {
+  setTimeout(function () {
+    if (!_onboardingActive) return;
+    var audio = state.audios[0];
+    var select = document.getElementById('trigger-audio-select');
+    if (!audio || !select) return;
+    var range = _getTutorialTriggerRange();
+    _setVal('trigger-name-input', 'Exemplo guiado');
+    _setVal('trigger-db-min', range.min);
+    _setVal('trigger-db-max', range.max);
+    renderTriggerAudioSelect();
+    select.value = audio.id;
+    _setVal('trigger-vol-slider', 80);
+    _setText('trigger-vol-val', '80%');
+    _setChecked('trigger-enabled-toggle', true);
+    queueOnboardingRefresh();
+  }, 60);
+}
+
+function _getTutorialTriggerRange() {
+  for (var min = 10; min <= 180; min += 10) {
+    var max = min + 8;
+    if (!_findOverlappingTrigger(min, max)) {
+      return { min: min, max: max };
+    }
+  }
+  return { min: 90, max: 98 };
+}
+
+function notifyTutorialEvent(eventName) {
+  if (!_onboardingActive) return;
+  var step = ONBOARDING_STEPS[_onboardingStep];
+  if (!step || step.advanceOn !== 'event' || step.eventName !== eventName) return;
+  setTimeout(function () {
+    nextOnboardingStep();
+  }, 180);
 }
 
 /* ================================================================
@@ -1454,8 +2009,6 @@ function _checkTriggers(db) {
 
 function _activateTrigger(trigger, db) {
   const audio = state.audios.find(a => a.id === trigger.audioId);
-
-  console.log(JSON.stringify(state.audios, null, 2));
   if (!audio) return;
 
   const vol = (trigger.volume || 100) / 100;
@@ -1633,6 +2186,7 @@ function saveTrigger() {
   renderTriggerList();
   closeModal('modal-trigger');
   showToast(editingTriggerId ? 'Gatilho atualizado' : 'Gatilho criado!', 'success');
+  notifyTutorialEvent('trigger-saved');
 }
 
 function toggleTriggerEnabled(id, enabled) {
@@ -1662,6 +2216,7 @@ function switchAddTab(tab) {
   document.querySelectorAll('.add-panel').forEach(p => p.classList.remove('active'));
   document.getElementById('tab-' + tab).classList.add('active');
   document.getElementById('panel-' + tab).classList.add('active');
+  queueOnboardingRefresh();
 }
 
 function onFileSelected(input) {
@@ -1761,11 +2316,11 @@ function addDefaultAudio(defId) {
     return;
   }
 
-  console.log(def.file, defId);
+  //console.log(def.file, defId);
 
   const src = './static/audios/' + (def.file || defId + '.mp3');
 
-  console.log(src);
+  //console.log(src);
 
   state.audios.push({
     id: def.id,
@@ -1783,6 +2338,7 @@ function addDefaultAudio(defId) {
   renderAudioList();
   renderTriggerAudioSelect();
   showToast('"' + def.name + '" adicionado!', 'success');
+  queueOnboardingRefresh();
 }
 
 /* ================================================================
@@ -1848,11 +2404,10 @@ function playIconSVG(active) {
 
 function onAudioCardClick(audioId) {
   if (state.currentAudioId === audioId && state.isPlaying) {
-    _audioEl && _audioEl.pause();
-    state.isPlaying = false;
-    updateNowPlayingUI();
-    renderAudioList();
-  } else playAudioById(audioId);
+    stopAudioManualWithMode(true);
+    return;
+  }
+  playAudioById(audioId);
 }
 
 function openAudioOptions(audioId) {
@@ -1951,10 +2506,12 @@ async function removeAudio() {
 function openModal(id) {
   const el = document.getElementById(id);
   if (el) el.classList.add('active');
+  queueOnboardingRefresh();
 }
 function closeModal(id) {
   const el = document.getElementById(id);
   if (el) el.classList.remove('active');
+  queueOnboardingRefresh();
 }
 
 /* ================================================================
