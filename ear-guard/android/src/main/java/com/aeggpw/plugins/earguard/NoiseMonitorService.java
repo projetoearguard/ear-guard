@@ -1,5 +1,6 @@
 package com.aeggpw.plugins.earguard;
 
+import android.Manifest;
 import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
@@ -7,6 +8,7 @@ import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.content.pm.ServiceInfo;
 import android.content.res.AssetFileDescriptor;
 import android.media.AudioFormat;
@@ -32,6 +34,8 @@ public class NoiseMonitorService extends Service {
     private static final String TAG = "app.EARGUARD";
     private static final String PREFS_NAME = "earguard_native";
     private static final String PREF_CONFIG = "config_json";
+    private static final boolean DEFAULT_NOTIFY_ON_HIGH_NOISE = true;
+    private static final boolean DEFAULT_NOTIFY_ON_TRIGGER = true;
 
     public static volatile double latestDb = 0;
     public static volatile double threshold = 80.0;
@@ -43,6 +47,7 @@ public class NoiseMonitorService extends Service {
     private static volatile int debounceMs = 800;
     private static volatile int cooldownMs = 3000;
     private static volatile double dbOffset = 0.0;
+    private static volatile boolean notifyOnHighNoise = true;
     private static volatile boolean notifyOnTrigger = true;
     private static volatile String currentAudioId = null;
     private static volatile String currentTriggerId = null;
@@ -52,6 +57,7 @@ public class NoiseMonitorService extends Service {
     private static volatile long lastThresholdNotificationAt = 0L;
     private static final long THRESHOLD_NOTIFICATION_COOLDOWN_MS = 15000L;
     private static final int THRESHOLD_NOTIFICATION_ID = 2001;
+    private static final int TRIGGER_NOTIFICATION_ID = 2002;
 
     private boolean running = false;
     private AudioRecord audioRecord;
@@ -102,10 +108,15 @@ public class NoiseMonitorService extends Service {
         if (configJson == null || configJson.trim().isEmpty()) {
             configJson = "{}";
         }
+        boolean previousNotifyOnHighNoise;
+        boolean previousNotifyOnTrigger;
         synchronized (CONFIG_LOCK) {
+            previousNotifyOnHighNoise = notifyOnHighNoise;
+            previousNotifyOnTrigger = notifyOnTrigger;
             lastLoadedConfig = configJson;
             applyConfigLocked(configJson);
         }
+        applyNotificationPreferenceChanges(context, previousNotifyOnHighNoise, previousNotifyOnTrigger);
         persistConfig(context, configJson);
     }
 
@@ -165,7 +176,7 @@ public class NoiseMonitorService extends Service {
                 mediaPlayer = player;
                 currentAudioId = audio.id;
                 playing = true;
-                Log.d(TAG, "Tocando áudio nativo: " + audio.name);
+                //Log.d(TAG, "Tocando áudio nativo: " + audio.name);
                 return true;
             } catch (Exception e) {
                 Log.e(TAG, "Falha ao iniciar reprodução nativa", e);
@@ -219,7 +230,14 @@ public class NoiseMonitorService extends Service {
             debounceMs = root.optInt("debounce", debounceMs);
             cooldownMs = (int) Math.max(0, Math.round(root.optDouble("cooldown", cooldownMs / 1000.0) * 1000.0));
             dbOffset = root.optDouble("dbOffset", dbOffset);
-            notifyOnTrigger = root.optBoolean("notifyOnTrigger", notifyOnTrigger);
+            notifyOnHighNoise = root.has("notifyOnHighNoise")
+                ? root.optBoolean("notifyOnHighNoise", DEFAULT_NOTIFY_ON_HIGH_NOISE)
+                : DEFAULT_NOTIFY_ON_HIGH_NOISE;
+            notifyOnTrigger = root.has("notifyOnTrigger")
+                ? root.optBoolean("notifyOnTrigger", DEFAULT_NOTIFY_ON_TRIGGER)
+                : DEFAULT_NOTIFY_ON_TRIGGER;
+            //Log.d(TAG, "notifyOnHighNoise=" + notifyOnHighNoise);
+            //Log.d(TAG, "notifyOnTrigger=" + notifyOnTrigger);
 
             AUDIO_LIBRARY.clear();
             JSONArray audios = root.optJSONArray("audios");
@@ -263,6 +281,29 @@ public class NoiseMonitorService extends Service {
         }
     }
 
+    private static void applyNotificationPreferenceChanges(Context context, boolean previousNotifyOnHighNoise, boolean previousNotifyOnTrigger) {
+        if (context == null) return;
+
+        if (previousNotifyOnHighNoise && !notifyOnHighNoise) {
+            synchronized (CONFIG_LOCK) {
+                thresholdAlertActive = false;
+                lastThresholdNotificationAt = 0L;
+            }
+            cancelNotification(context, THRESHOLD_NOTIFICATION_ID);
+        }
+
+        if (previousNotifyOnTrigger && !notifyOnTrigger) {
+            cancelNotification(context, TRIGGER_NOTIFICATION_ID);
+        }
+    }
+
+    private static void cancelNotification(Context context, int notificationId) {
+        NotificationManager manager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+        if (manager != null) {
+            manager.cancel(notificationId);
+        }
+    }
+
     private static String resolveAssetPath(String assetPath) {
         if (assetPath.startsWith("public/")) {
             return assetPath;
@@ -293,8 +334,10 @@ public class NoiseMonitorService extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        Log.d(TAG, "Serviço iniciado em segundo plano");
+        //Log.d(TAG, "Serviço iniciado em segundo plano");
         loadPersistedConfig(getApplicationContext());
+        //Log.d(TAG, "notifyOnHighNoise=" + notifyOnHighNoise);
+        //Log.d(TAG, "notifyOnTrigger=" + notifyOnTrigger);
 
         PowerManager powerManager = (PowerManager) getSystemService(Context.POWER_SERVICE);
         if (powerManager != null) {
@@ -350,15 +393,15 @@ public class NoiseMonitorService extends Service {
                         }
 
                         double rms = Math.sqrt(sum / read);
-                        double db = rms > 1 ? 20 * Math.log10(rms / 32768.0) + 60 + dbOffset : 0;
+                        double db = rms > 1 ? 20 * Math.log10(rms / 32768.0) + 85 + dbOffset : 0;
                         latestDb = Math.max(0, db);
 
                         evaluateTriggers(latestDb);
-                        Log.d(TAG, "dB: " + (int) latestDb + " / Limite: " + (int) threshold);
+                        // Log.d(TAG, "dB: " + (int) latestDb + " / Limite: " + (int) threshold);
                     }
 
                     try {
-                        Thread.sleep(100);
+                        Thread.sleep(10);
                     } catch (InterruptedException e) {
                         break;
                     }
@@ -420,7 +463,7 @@ public class NoiseMonitorService extends Service {
         if (audio != null) {
             played = playAudio(getApplicationContext(), audio.id, trigger.volume >= 0 ? trigger.volume : audio.volume, false);
             if (played) {
-                Log.d(TAG, "Gatilho ativado: " + trigger.name + " -> " + audio.name);
+                //Log.d(TAG, "Gatilho ativado: " + trigger.name + " -> " + audio.name);
             }
         } else {
             Log.w(TAG, "Gatilho sem áudio nativo correspondente: " + trigger.name);
@@ -434,7 +477,8 @@ public class NoiseMonitorService extends Service {
         }
 
         if (played && notifyOnTrigger) {
-            Log.d(TAG, "Notificação de gatilho: " + trigger.name);
+            //Log.d(TAG, "Notificação de gatilho: " + trigger.name);
+            dispatchTriggerNotification(trigger, audio, db);
         }
     }
 
@@ -443,6 +487,10 @@ public class NoiseMonitorService extends Service {
         double currentThreshold;
 
         synchronized (CONFIG_LOCK) {
+            if (!notifyOnHighNoise) {
+                thresholdAlertActive = false;
+                return;
+            }
             currentThreshold = threshold;
             if (db < currentThreshold) {
                 thresholdAlertActive = false;
@@ -460,6 +508,8 @@ public class NoiseMonitorService extends Service {
         }
 
         if (!shouldNotify) return;
+        //Log.d(TAG, "Tentando enviar notificação de ruído");
+        if (!canPostNotifications()) return;
 
         NotificationManager manager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
         if (manager != null) {
@@ -467,10 +517,30 @@ public class NoiseMonitorService extends Service {
                 THRESHOLD_NOTIFICATION_ID,
                 createThresholdNotification(
                     "Ruído elevado",
-                    "Nível registrado: " + (int) db
+                    "Nível registrado: " + (int) db + " dB"
                 )
             );
         }
+    }
+
+    private void dispatchTriggerNotification(NativeTrigger trigger, NativeAudio audio, double db) {
+        //Log.d(TAG, "Tentando enviar notificação de gatilho");
+        if (!canPostNotifications()) {
+            return;
+        }
+
+        NotificationManager manager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+        if (manager == null) {
+            return;
+        }
+
+        manager.notify(
+            TRIGGER_NOTIFICATION_ID,
+            createTriggerNotification(
+                "Gatilho ativado",
+                trigger.name + " · " + audio.name + " · " + (int) db + " dB"
+            )
+        );
     }
 
     @Override
@@ -492,6 +562,8 @@ public class NoiseMonitorService extends Service {
             thresholdAlertActive = false;
             lastThresholdNotificationAt = 0L;
         }
+        cancelNotification(getApplicationContext(), THRESHOLD_NOTIFICATION_ID);
+        cancelNotification(getApplicationContext(), TRIGGER_NOTIFICATION_ID);
         if (wakeLock != null && wakeLock.isHeld()) {
             wakeLock.release();
         }
@@ -501,6 +573,11 @@ public class NoiseMonitorService extends Service {
     @Override
     public IBinder onBind(Intent intent) {
         return null;
+    }
+
+    private boolean canPostNotifications() {
+        return Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU
+            || checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED;
     }
 
     private Notification createNotification(String title, String text) {
@@ -527,6 +604,20 @@ public class NoiseMonitorService extends Service {
             .setContentTitle(title)
             .setContentText(text)
             .setSmallIcon(android.R.drawable.ic_dialog_alert)
+            .setAutoCancel(true)
+            .build();
+    }
+
+    private Notification createTriggerNotification(String title, String text) {
+        String channelId = "trigger_alert";
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            NotificationChannel channel = new NotificationChannel(channelId, "Alertas de gatilho", NotificationManager.IMPORTANCE_DEFAULT);
+            getSystemService(NotificationManager.class).createNotificationChannel(channel);
+        }
+        return new Notification.Builder(this, channelId)
+            .setContentTitle(title)
+            .setContentText(text)
+            .setSmallIcon(android.R.drawable.ic_media_play)
             .setAutoCancel(true)
             .build();
     }

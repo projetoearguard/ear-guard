@@ -2,6 +2,7 @@ package com.aeggpw.plugins.earguard;
 
 import android.Manifest;
 import android.content.Intent;
+import android.util.Log;
 import android.util.Base64;
 import com.getcapacitor.JSObject;
 import com.getcapacitor.Plugin;
@@ -23,6 +24,7 @@ import java.io.IOException;
     }
 )
 public class EarGuardPlugin extends Plugin {
+    private static final String TAG = "app.EARGUARD";
 
     @PluginMethod
     public void start(PluginCall call) {
@@ -37,8 +39,9 @@ public class EarGuardPlugin extends Plugin {
 
     @PluginMethod
     public void configure(PluginCall call) {
-        String config = call.getString("config");
-        NoiseMonitorService.updateConfig(getContext(), config);
+        String configJson = call.getString("config");
+        Log.d(TAG, "Config recebida: " + configJson);
+        NoiseMonitorService.updateConfig(getContext(), configJson);
         call.resolve();
     }
 

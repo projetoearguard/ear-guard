@@ -4,6 +4,25 @@ Este documento registra as alterações realizadas no projeto ao longo do desenv
 
 ---
 
+## 2026-06-13 22:00
+
+**Adicionado**
+
+* Tutorial de primeira visita com reabertura manual pela tela de Configurações
+
+**Modificado**
+
+* Comportamento dos players de áudio padronizado entre Áudios, Calibração guiada e Notificações
+* Reprodução de músicas alterada para modo toggle, permitindo iniciar e parar o mesmo áudio pelo próprio card
+* Botões de prévia/escuta em Calibração guiada e Notificações atualizados para alternar corretamente entre "Ouvir" e "Parar"
+
+**Corrigido**
+
+* Notificações permanecendo ativas após desativação
+* Notificação de gatilho não sendo enviada
+* Reprodução simultânea indevida entre áudios auxiliares de Calibração guiada e Notificações
+* Continuidade de áudio ao trocar de tela, garantindo interrupção e limpeza ao sair dos fluxos relevantes
+
 ## 2026-06-06 19:30
 
 **Adicionado**
